@@ -10,6 +10,7 @@ import { TextField } from '@/components/text-field';
 import { authErrorKey, sendOtp, verifyOtp } from '@/features/auth/api';
 import { formatIndianPhone } from '@/features/auth/phone';
 import { t } from '@/i18n';
+import { track } from '@/lib/monitoring';
 import { colors, spacing } from '@/theme';
 
 const RESEND_SECONDS = 30;
@@ -28,7 +29,10 @@ export default function VerifyScreen() {
   }, [secondsLeft]);
 
   // On success the session changes and the root navigator moves on by itself.
-  const verify = useMutation({ mutationFn: (token: string) => verifyOtp(phone, token) });
+  const verify = useMutation({
+    mutationFn: (token: string) => verifyOtp(phone, token),
+    onSuccess: () => track('signed_in'),
+  });
   const resend = useMutation({
     mutationFn: () => sendOtp(phone),
     onSuccess: () => setSecondsLeft(RESEND_SECONDS),

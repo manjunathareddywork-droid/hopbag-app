@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useSession } from '@/features/auth/session';
+import { track } from '@/lib/monitoring';
 
 import { fetchMyRating, fetchRatingSummaries, rateCounterpart } from './api';
 
@@ -32,6 +33,9 @@ export function useRate() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: rateCounterpart,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ratings'] }),
+    onSuccess: (_data, input) => {
+      track('rating_sent', { stars: input.stars });
+      queryClient.invalidateQueries({ queryKey: ['ratings'] });
+    },
   });
 }

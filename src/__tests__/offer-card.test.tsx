@@ -5,6 +5,8 @@ import { en } from '@/i18n/en';
 import type { Offer, Profile } from '@/lib/database.types';
 import { renderWithQuery } from '@/test-utils';
 
+jest.mock('expo-router', () => ({ Link: ({ children }: { children: unknown }) => children }));
+
 const offer = {
   id: 'o1',
   traveler_id: 't1',

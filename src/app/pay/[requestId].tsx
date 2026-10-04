@@ -13,6 +13,7 @@ import { checkoutHtml, parseCheckoutMessage } from '@/features/payments/checkout
 import { useVerifyPayment } from '@/features/payments/hooks';
 import { t } from '@/i18n';
 import { dbErrorMessage } from '@/lib/db-errors';
+import { track } from '@/lib/monitoring';
 import { colors, spacing } from '@/theme';
 
 type Stage = 'checkout' | 'confirming' | 'done' | 'failed';
@@ -30,6 +31,7 @@ export default function PayScreen() {
 
   const { mutate: startOrder } = order;
   useEffect(() => {
+    track('checkout_opened');
     startOrder(requestId);
   }, [startOrder, requestId]);
 
@@ -39,13 +41,17 @@ export default function PayScreen() {
       setStage('confirming');
       const { type: _type, ...result } = message;
       verify.mutate(result, {
-        onSuccess: () => setStage('done'),
+        onSuccess: () => {
+          track('payment_completed');
+          setStage('done');
+        },
         onError: (error) => {
           setFailure(dbErrorMessage(error, 'payment.failedGeneric'));
           setStage('failed');
         },
       });
     } else if (message.type === 'failed') {
+      track('payment_failed');
       setFailure(
         message.description
           ? t('payment.failed', { reason: message.description })

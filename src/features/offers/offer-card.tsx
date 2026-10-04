@@ -1,3 +1,4 @@
+import { Link } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -53,6 +54,17 @@ export function OfferCard({
         })}
       </Text>
       {offer.message ? <Text variant="body">{`“${offer.message}”`}</Text> : null}
+      <Link
+        href={{
+          pathname: '/report/[userId]',
+          params: { userId: offer.traveler_id, requestId: offer.request_id },
+        }}
+        style={styles.report}
+      >
+        <Text variant="caption" muted>
+          {t('safety.reportOrBlock')}
+        </Text>
+      </Link>
       {offer.status !== 'pending' ? (
         <Text variant="caption" muted>
           {t(`offers.status.${offer.status}` as StringKey)}
@@ -98,6 +110,11 @@ const styles = StyleSheet.create({
   },
   name: {
     flex: 1,
+  },
+  report: {
+    alignSelf: 'flex-start',
+    paddingVertical: spacing.xs,
+    textDecorationLine: 'underline',
   },
   badge: {
     alignItems: 'flex-start',

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useSession } from '@/features/auth/session';
+import { track } from '@/lib/monitoring';
 
 import {
   confirmDeliveryCode,
@@ -80,13 +81,22 @@ export function useMarkPickedUp() {
   const userId = useSession().session?.user.id ?? '';
   return useDeliveryMutation(
     (input: { requestId: string; photoUri: string; weightGrams: number }) =>
-      markPickedUp({ userId, ...input }),
+      markPickedUp({ userId, ...input }).then((d) => {
+        track('pickup_marked');
+        return d;
+      }),
   );
 }
 
 /** Not cached: each tap shows a fresh code. */
 export const useIssueHandoverCode = () => useMutation({ mutationFn: issueHandoverCode });
-export const useConfirmDeliveryCode = () => useDeliveryMutation(confirmDeliveryCode);
+export const useConfirmDeliveryCode = () =>
+  useDeliveryMutation((input: { requestId: string; code: string }) =>
+    confirmDeliveryCode(input).then((result) => {
+      if (result === 'settled') track('delivery_confirmed', { method: 'code' });
+      return result;
+    }),
+  );
 export const useMarkHandedOver = () => useDeliveryMutation(markHandedOver);
 export const useConfirmReceived = () => useDeliveryMutation(confirmReceived);
 export const useRaiseDispute = () => useDeliveryMutation(raiseDispute);

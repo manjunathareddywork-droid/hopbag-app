@@ -16,10 +16,21 @@ import { useMyProfile } from '@/features/profile/hooks';
 import { t } from '@/i18n';
 import type { ItemRequest } from '@/lib/database.types';
 import { onPushTap, registerForPush } from '@/lib/push';
+import { installGlobalErrorHandler, reportError, track } from '@/lib/monitoring';
 import { queryClient } from '@/lib/query-client';
 import { colors, fonts } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
+installGlobalErrorHandler();
+track('app_opened');
+
+/** Shown instead of a screen that crashed while rendering; the crash is logged. */
+export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Promise<void> }) {
+  useEffect(() => {
+    reportError(error, { kind: 'crash', screen: 'render' });
+  }, [error]);
+  return <LoadingView error={t('errors.crashed')} retryLabel={t('common.retry')} onRetry={retry} />;
+}
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -134,6 +145,12 @@ function RootNavigator() {
         />
         <Stack.Screen name="dispute/[requestId]" options={{ title: t('dispute.title') }} />
         <Stack.Screen name="chat/[requestId]" options={{ title: t('chat.title') }} />
+        <Stack.Screen name="report/[userId]" options={{ title: t('safety.title') }} />
+        <Stack.Screen name="blocked" options={{ title: t('safety.blockedListTitle') }} />
+        <Stack.Screen name="admin/dashboard" options={{ title: t('adminDashboard.title') }} />
+        <Stack.Screen name="admin/reports/index" options={{ title: t('adminDashboard.reports') }} />
+        <Stack.Screen name="admin/reports/[id]" options={{ title: t('adminDashboard.reports') }} />
+        <Stack.Screen name="admin/errors" options={{ title: t('adminDashboard.errors') }} />
         <Stack.Screen name="updates" options={{ title: t('notifications.title') }} />
         <Stack.Screen name="traveler/requests/[id]" options={{ title: t('offers.requestTitle') }} />
 
@@ -146,6 +163,8 @@ function RootNavigator() {
           options={{ title: t('adminDisputes.title') }}
         />
       </Stack.Protected>
+      <Stack.Screen name="legal/privacy" options={{ title: t('legal.privacyTitle') }} />
+      <Stack.Screen name="legal/terms" options={{ title: t('legal.termsTitle') }} />
     </Stack>
   );
 }

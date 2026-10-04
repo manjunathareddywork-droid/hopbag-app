@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -11,6 +11,7 @@ import { TextField } from '@/components/text-field';
 import { authErrorKey, sendOtp } from '@/features/auth/api';
 import { toIndianE164 } from '@/features/auth/phone';
 import { t } from '@/i18n';
+import { track } from '@/lib/monitoring';
 import { spacing } from '@/theme';
 
 const logo = require('@/assets/brand/logo/hopbag-logo-horizontal-onlight.svg');
@@ -22,7 +23,10 @@ export default function SignInScreen() {
 
   const send = useMutation({
     mutationFn: sendOtp,
-    onSuccess: (_data, phone) => router.push({ pathname: '/verify', params: { phone } }),
+    onSuccess: (_data, phone) => {
+      track('otp_requested');
+      router.push({ pathname: '/verify', params: { phone } });
+    },
   });
 
   function onSubmit() {
@@ -67,6 +71,18 @@ export default function SignInScreen() {
       />
 
       <Button title={t('signIn.sendCode')} loading={send.isPending} onPress={onSubmit} />
+
+      <Text variant="caption" muted>
+        {t('legal.agree')}
+      </Text>
+      <View style={styles.legal}>
+        <Link href="/legal/terms" style={styles.legalLink}>
+          <Text variant="caption">{t('legal.termsTitle')}</Text>
+        </Link>
+        <Link href="/legal/privacy" style={styles.legalLink}>
+          <Text variant="caption">{t('legal.privacyTitle')}</Text>
+        </Link>
+      </View>
     </Screen>
   );
 }
@@ -75,6 +91,14 @@ const styles = StyleSheet.create({
   header: {
     gap: spacing.sm,
     paddingTop: spacing.xl,
+  },
+  legal: {
+    flexDirection: 'row',
+    gap: spacing.lg,
+  },
+  legalLink: {
+    paddingVertical: spacing.xs,
+    textDecorationLine: 'underline',
   },
   logo: {
     width: 146,

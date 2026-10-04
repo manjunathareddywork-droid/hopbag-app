@@ -6,7 +6,10 @@ import { supabase } from '@/lib/supabase';
 import { renderWithQuery } from '@/test-utils';
 
 const mockPush = jest.fn();
-jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ push: mockPush }),
+  Link: ({ children }: { children: unknown }) => children,
+}));
 jest.mock('@/lib/supabase', () => ({
   supabase: { auth: { signInWithOtp: jest.fn() } },
 }));

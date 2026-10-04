@@ -7,6 +7,7 @@ import { useCities, useStates } from '@/features/places/hooks';
 import { useMyProfile, useSaveProfile } from '@/features/profile/hooks';
 import { ProfileForm } from '@/features/profile/profile-form';
 import { t } from '@/i18n';
+import { track } from '@/lib/monitoring';
 import { spacing } from '@/theme';
 
 export default function OnboardingScreen() {
@@ -45,7 +46,9 @@ export default function OnboardingScreen() {
         submitLabel={t('onboarding.submit')}
         saving={save.isPending}
         saveError={save.isError ? t('profile.saveFailed') : undefined}
-        onSubmit={(values) => save.mutate(values)}
+        onSubmit={(values) =>
+          save.mutate(values, { onSuccess: () => track('onboarding_completed') })
+        }
       />
     </Screen>
   );

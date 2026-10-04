@@ -12,6 +12,13 @@ jest.mock('@/features/profile/hooks', () => ({
 jest.mock('@/features/admin/hooks', () => ({
   useIsAdmin: () => ({ data: mockIsAdmin.current }),
 }));
+const mockSuspension: { current: { reason: string } | null } = { current: null };
+jest.mock('@/features/safety/hooks', () => ({
+  useSuspension: () => ({ data: mockSuspension.current }),
+}));
+jest.mock('@/features/auth/session', () => ({
+  useSession: () => ({ session: { user: { id: 'u1' } } }),
+}));
 const mockUnread = { current: 0 };
 jest.mock('@/features/notifications/hooks', () => ({
   useUnreadCount: () => mockUnread.current,
@@ -40,5 +47,17 @@ describe('HomeScreen', () => {
     mockUnread.current = 3;
     await renderWithQuery(<HomeScreen />);
     expect(screen.getByText('Updates (3)')).toBeTruthy();
+  });
+
+  it('tells a suspended person why', async () => {
+    mockUnread.current = 0;
+    mockSuspension.current = { reason: 'Asked for payment outside the app' };
+    await renderWithQuery(<HomeScreen />);
+    expect(
+      screen.getByText(
+        'Your account is suspended: Asked for payment outside the app. You can read but not post. Contact Hopbag support.',
+      ),
+    ).toBeTruthy();
+    mockSuspension.current = null;
   });
 });

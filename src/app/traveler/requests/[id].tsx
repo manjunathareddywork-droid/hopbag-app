@@ -76,6 +76,15 @@ export default function TravelerRequestScreen() {
         <Image source={{ uri: photo.data }} style={styles.photo} contentFit="cover" />
       ) : null}
 
+      <Link
+        href={{ pathname: '/report/[userId]', params: { userId: r.requester_id, requestId: r.id } }}
+        style={styles.report}
+      >
+        <Text variant="caption" muted>
+          {t('safety.reportOrBlock')}
+        </Text>
+      </Link>
+
       <View style={styles.card}>
         <DetailRow
           label={t('requests.fields.category')}
@@ -163,6 +172,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  report: {
+    alignSelf: 'flex-start',
+    paddingVertical: spacing.xs,
+    textDecorationLine: 'underline',
   },
   inner: {
     padding: spacing.md,

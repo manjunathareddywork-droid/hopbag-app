@@ -61,14 +61,25 @@ export default function AccountScreen() {
 
       <View style={styles.actions}>
         {isAdmin ? (
-          <Link href="/admin" asChild>
+          <Link href="/admin/dashboard" asChild>
             <Button title={t('admin.open')} />
           </Link>
         ) : null}
         <Link href="/edit-profile" asChild>
           <Button title={t('account.edit')} variant="secondary" />
         </Link>
+        <Link href="/blocked" asChild>
+          <Button title={t('safety.manageBlocked')} variant="secondary" />
+        </Link>
         <Button title={t('account.signOut')} variant="secondary" onPress={confirmSignOut} />
+        <View style={styles.legal}>
+          <Link href="/legal/terms" style={styles.legalLink}>
+            <Text variant="caption">{t('legal.termsTitle')}</Text>
+          </Link>
+          <Link href="/legal/privacy" style={styles.legalLink}>
+            <Text variant="caption">{t('legal.privacyTitle')}</Text>
+          </Link>
+        </View>
       </View>
     </Screen>
   );
@@ -87,5 +98,14 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: spacing.md,
+  },
+  legal: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.lg,
+  },
+  legalLink: {
+    paddingVertical: spacing.sm,
+    textDecorationLine: 'underline',
   },
 });

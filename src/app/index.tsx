@@ -8,8 +8,10 @@ import { Text } from '@/components/text';
 import { useIsAdmin } from '@/features/admin/hooks';
 import { useUnreadCount } from '@/features/notifications/hooks';
 import { useMyProfile } from '@/features/profile/hooks';
+import { useSuspension } from '@/features/safety/hooks';
+import { useSession } from '@/features/auth/session';
 import { t } from '@/i18n';
-import { spacing } from '@/theme';
+import { colors, radius, spacing } from '@/theme';
 
 const logo = require('@/assets/brand/logo/hopbag-logo-stacked-onlight.svg');
 
@@ -17,10 +19,18 @@ export default function HomeScreen() {
   const { data: profile } = useMyProfile();
   const isAdmin = useIsAdmin().data === true;
   const unread = useUnreadCount();
+  const suspension = useSuspension(useSession().session?.user.id).data;
   const firstName = profile?.full_name.split(' ')[0] ?? '';
 
   return (
     <Screen>
+      {suspension ? (
+        <View style={styles.banner} accessibilityLiveRegion="polite">
+          <Text variant="body">
+            {t('safety.suspendedBanner', { reason: suspension.reason ?? '' })}
+          </Text>
+        </View>
+      ) : null}
       <View style={styles.hero}>
         <Image
           source={logo}
@@ -57,7 +67,7 @@ export default function HomeScreen() {
           <Button title={t('home.account')} variant="secondary" />
         </Link>
         {isAdmin ? (
-          <Link href="/admin" asChild>
+          <Link href="/admin/dashboard" asChild>
             <Button title={t('admin.open')} variant="secondary" />
           </Link>
         ) : null}
@@ -77,6 +87,11 @@ const styles = StyleSheet.create({
     width: 130,
     height: 136,
     marginBottom: spacing.md,
+  },
+  banner: {
+    backgroundColor: colors.dangerSoft,
+    borderRadius: radius.md,
+    padding: spacing.md,
   },
   actions: {
     gap: spacing.md,

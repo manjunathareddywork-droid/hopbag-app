@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,6 +15,7 @@ import { categoryText } from '@/features/requests/labels';
 import { useMyTrips } from '@/features/travelers/hooks';
 import { t } from '@/i18n';
 import { formatDate, todayIst } from '@/lib/dates';
+import { track } from '@/lib/monitoring';
 import { colors, fonts, radius, spacing } from '@/theme';
 
 export default function FeedScreen() {
@@ -43,6 +44,10 @@ export default function FeedScreen() {
   const [exactOnly, setExactOnly] = useState(false);
   const [category, setCategory] = useState<string | null>(null);
   const feed = useFeed(tripId);
+
+  useEffect(() => {
+    track('feed_opened');
+  }, []);
 
   if (!trips.data || !cities.data || !categories.data) {
     const failed = trips.isError || cities.isError || categories.isError;

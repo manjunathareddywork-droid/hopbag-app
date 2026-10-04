@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useSession } from '@/features/auth/session';
+import { track, type EventName } from '@/lib/monitoring';
 
 import {
   acceptOffer,
@@ -54,11 +55,12 @@ export function useRequestsByIds(ids: string[]) {
 }
 
 /** Any offer change can move request status, feeds and trip space: refresh them all. */
-function useOfferMutation<T>(fn: (input: T) => Promise<unknown>) {
+function useOfferMutation<T>(fn: (input: T) => Promise<unknown>, event?: EventName) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: fn,
     onSuccess: () => {
+      if (event) track(event);
       queryClient.invalidateQueries({ queryKey: ['offers'] });
       queryClient.invalidateQueries({ queryKey: ['feed'] });
       queryClient.invalidateQueries({ queryKey: ['requests'] });
@@ -66,7 +68,7 @@ function useOfferMutation<T>(fn: (input: T) => Promise<unknown>) {
   });
 }
 
-export const useMakeOffer = () => useOfferMutation(makeOffer);
+export const useMakeOffer = () => useOfferMutation(makeOffer, 'offer_sent');
 export const useWithdrawOffer = () => useOfferMutation(withdrawOffer);
-export const useAcceptOffer = () => useOfferMutation(acceptOffer);
+export const useAcceptOffer = () => useOfferMutation(acceptOffer, 'offer_accepted');
 export const useDeclineOffer = () => useOfferMutation(declineOffer);

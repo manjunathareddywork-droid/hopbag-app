@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -22,6 +22,7 @@ import { t } from '@/i18n';
 import type { Message } from '@/lib/database.types';
 import { dbErrorMessage } from '@/lib/db-errors';
 import { formatDateTime } from '@/lib/dates';
+import { track } from '@/lib/monitoring';
 import { colors, fonts, radius, spacing } from '@/theme';
 
 export default function ChatScreen() {
@@ -35,6 +36,10 @@ export default function ChatScreen() {
   const [draft, setDraft] = useState('');
   const [blocked, setBlocked] = useState<string>();
   const list = useRef<FlatList<Message>>(null);
+
+  useEffect(() => {
+    track('chat_opened');
+  }, []);
 
   if (!request.data || !chat.data) {
     return (
