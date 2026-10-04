@@ -1,6 +1,4 @@
-import { isJpeg } from '@/features/profile/api';
-
-jest.mock('@/lib/supabase', () => ({ supabase: {} }));
+import { isJpeg } from '@/lib/images';
 
 const bytes = (...values: number[]) => new Uint8Array(values).buffer;
 
