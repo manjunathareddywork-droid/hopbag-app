@@ -125,9 +125,11 @@ select lives_ok(
 select is(
   (select status::text from public.payments where razorpay_order_id = 'order_test_1'),
   'captured', 'payment is marked captured (held by Razorpay)');
+reset role; -- checks on tables the Edge Functions never read directly
 select is(
   (select status::text from public.item_requests where id = (select id from k where name = 'req')),
   'paid', 'request moves to paid');
+set local role service_role;
 select results_eq(
   $$ select account, amount_paise from public.ledger_entries order by account $$,
   $$ values ('held', 60000), ('requester', -60000) $$,
@@ -200,6 +202,7 @@ select lives_ok(
   $$ select public.record_refund_requested(
        (select id from public.payments where razorpay_order_id = 'order_test_1'), 'rfnd_1') $$,
   'refund request is recorded');
+reset role;
 select results_eq(
   $$ select p.status::text, r.status::text, o.status::text
      from public.payments p
@@ -208,6 +211,7 @@ select results_eq(
      where p.razorpay_order_id = 'order_test_1' $$,
   $$ values ('refund_pending', 'refunded', 'closed') $$,
   'refund pending: request refunded, offer closed so trip space is freed');
+set local role service_role;
 
 select throws_ok(
   $$ select public.record_refund_processed('pay_test_1', 'rfnd_1', 30000) $$,
