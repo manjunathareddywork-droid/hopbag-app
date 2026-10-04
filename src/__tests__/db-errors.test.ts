@@ -73,4 +73,10 @@ describe('dbErrorMessage', () => {
     expect(dbErrorMessage({ code: 'HB025' }, 'delivery.actionFailed')).toBe(en.delivery.noCodeYet);
     expect(dbErrorMessage({ code: 'HB027' }, 'dispute.failed')).toBe(en.dispute.reasonShort);
   });
+
+  it('explains safety errors', () => {
+    expect(dbErrorMessage({ code: 'HB030' }, 'chat.sendFailed')).toBe(en.safety.errors.blocked);
+    expect(dbErrorMessage({ code: 'HB031' }, 'chat.sendFailed')).toBe(en.safety.errors.suspended);
+    expect(dbErrorMessage({ code: 'HB032' }, 'chat.sendFailed')).toBe(en.safety.errors.tooMany);
+  });
 });

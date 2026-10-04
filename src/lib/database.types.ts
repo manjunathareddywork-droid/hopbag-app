@@ -190,6 +190,8 @@ type RatingRow = {
   created_at: string;
 };
 
+export type ReportCategory = 'fraud' | 'abuse' | 'no_show' | 'prohibited_item' | 'other';
+
 export type OfferStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'closed';
 
 type OfferRow = {
@@ -346,6 +348,94 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      app_errors: {
+        Row: {
+          id: number;
+          user_id: string | null;
+          kind: 'crash' | 'error' | 'promise';
+          message: string;
+          stack: string | null;
+          screen: string | null;
+          fingerprint: string;
+          app_version: string | null;
+          platform: string | null;
+          os_version: string | null;
+          device_model: string | null;
+          created_at: string;
+        };
+        Insert: {
+          kind: 'crash' | 'error' | 'promise';
+          message: string;
+          stack?: string | null;
+          screen?: string | null;
+          fingerprint: string;
+          app_version?: string | null;
+          platform?: string | null;
+          os_version?: string | null;
+          device_model?: string | null;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      app_events: {
+        Row: {
+          id: number;
+          user_id: string | null;
+          name: string;
+          properties: Record<string, string | number | boolean>;
+          app_version: string | null;
+          platform: string | null;
+          created_at: string;
+        };
+        Insert: {
+          name: string;
+          properties?: Record<string, string | number | boolean>;
+          app_version?: string | null;
+          platform?: string | null;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      account_suspensions: {
+        Row: {
+          user_id: string;
+          reason: string | null;
+          suspended_by: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      user_blocks: {
+        Row: { blocker_id: string; blocked_id: string; created_at: string };
+        Insert: { blocked_id: string };
+        Update: never;
+        Relationships: [];
+      };
+      user_reports: {
+        Row: {
+          id: string;
+          reporter_id: string;
+          reported_user_id: string;
+          request_id: string | null;
+          category: ReportCategory;
+          details: string;
+          status: 'open' | 'reviewed';
+          admin_note: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          reported_user_id: string;
+          request_id?: string | null;
+          category: ReportCategory;
+          details?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
       messages: {
         Row: MessageRow;
         Insert: { request_id: string; body: string };
@@ -481,6 +571,33 @@ export type Database = {
         Args: { p_user_ids: string[] };
         Returns: { user_id: string; average: number; count: number }[];
       };
+      review_report: {
+        Args: { p_report_id: string; p_note: string; p_suspend?: boolean };
+        Returns: unknown;
+      };
+      set_suspension: {
+        Args: { p_user_id: string; p_suspended: boolean; p_reason?: string };
+        Returns: undefined;
+      };
+      admin_dashboard: {
+        Args: Record<string, never>;
+        Returns: Record<string, number>;
+      };
+      admin_funnel: {
+        Args: { p_days?: number };
+        Returns: { step: string; count: number }[];
+      };
+      admin_error_groups: {
+        Args: { p_hours?: number };
+        Returns: {
+          fingerprint: string;
+          message: string;
+          screen: string | null;
+          occurrences: number;
+          users: number;
+          last_seen: string;
+        }[];
+      };
       request_traveler: {
         Args: { p_request_id: string };
         Returns: string | null;
@@ -522,3 +639,4 @@ export type Payout = Tables['payouts']['Row'];
 export type Message = Tables['messages']['Row'];
 export type AppNotification = Tables['notifications']['Row'];
 export type Rating = Tables['ratings']['Row'];
+export type UserReport = Tables['user_reports']['Row'];

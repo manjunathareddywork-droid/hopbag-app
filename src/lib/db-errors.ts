@@ -78,6 +78,12 @@ export function dbErrorMessage(error: unknown, fallback: StringKey): string {
       return t('dispute.reasonShort');
     case 'HB028':
       return t('chat.phoneBlocked');
+    case 'HB030':
+      return t('safety.errors.blocked');
+    case 'HB031':
+      return t('safety.errors.suspended');
+    case 'HB032':
+      return t('safety.errors.tooMany');
     // Edge Function codes (supabase/functions/_shared/http.ts)
     case 'bad_signature':
       return t('payment.errors.badSignature');
