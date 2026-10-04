@@ -62,7 +62,7 @@ select lives_ok($$ select public.accept_offer((select id from public.offers limi
 -- Clients cannot touch payment functions or tables
 -------------------------------------------------------------------------------
 select throws_ok(
-  $$ select public.record_payment_captured('order_x', 'pay_x', 60000) $$,
+  $$ select public.record_payment_captured('order_x', 'pay_x', 62000) $$,
   '42501', null, 'a signed-in user cannot mark a payment captured');
 select throws_ok(
   $$ select * from public.payment_quote((select id from k where name = 'req'),
@@ -94,11 +94,11 @@ select throws_ok(
                                         '11111111-1111-1111-1111-111111111111') $$,
   'HB022', null, 'a request without an accepted offer cannot be paid');
 select results_eq(
-  $$ select item_price_paise, fare_paise, amount_paise, existing_order_id
+  $$ select item_price_paise, fare_paise, fee_paise, amount_paise, existing_order_id
      from public.payment_quote((select id from k where name = 'req'),
                                '11111111-1111-1111-1111-111111111111') $$,
-  $$ values (40000, 20000, 60000, null::text) $$,
-  'amount is item price + fare, in paise');
+  $$ values (40000, 20000, 2000, 62000, null::text) $$,
+  'requester pays item price + fare + 10% Hopbag fee on the fare, in paise');
 
 select lives_ok(
   $$ select public.record_order_created((select id from k where name = 'req'),
@@ -116,13 +116,13 @@ select is(
 -- Capture (verify-payment Edge Function and payment.captured webhook)
 -------------------------------------------------------------------------------
 select throws_ok(
-  $$ select public.record_payment_captured('order_test_1', 'pay_test_1', 59999) $$,
+  $$ select public.record_payment_captured('order_test_1', 'pay_test_1', 61999) $$,
   'HB023', null, 'amount mismatch is rejected');
 select throws_ok(
-  $$ select public.record_payment_captured('order_unknown', 'pay_test_1', 60000) $$,
+  $$ select public.record_payment_captured('order_unknown', 'pay_test_1', 62000) $$,
   'HB023', null, 'unknown order is rejected');
 select lives_ok(
-  $$ select public.record_payment_captured('order_test_1', 'pay_test_1', 60000) $$,
+  $$ select public.record_payment_captured('order_test_1', 'pay_test_1', 62000) $$,
   'payment is captured');
 select is(
   (select status::text from public.payments where razorpay_order_id = 'order_test_1'),
@@ -134,16 +134,16 @@ select is(
 set local role service_role;
 select results_eq(
   $$ select account, amount_paise from public.ledger_entries order by account $$,
-  $$ values ('held', 60000), ('requester', -60000) $$,
-  'ledger: 60000 paise held, balanced against the requester');
+  $$ values ('held', 62000), ('requester', -62000) $$,
+  'ledger: 62000 paise held, balanced against the requester');
 
 select lives_ok(
-  $$ select public.record_payment_captured('order_test_1', 'pay_test_1', 60000) $$,
+  $$ select public.record_payment_captured('order_test_1', 'pay_test_1', 62000) $$,
   'replaying the same capture is accepted');
 select is((select count(*)::int from public.ledger_entries), 2,
   'replayed capture does not post again');
 select throws_ok(
-  $$ select public.record_payment_captured('order_test_1', 'pay_other', 60000) $$,
+  $$ select public.record_payment_captured('order_test_1', 'pay_other', 62000) $$,
   'HB023', null, 'a second, different payment for the same order is rejected');
 
 select lives_ok(
@@ -219,7 +219,7 @@ select throws_ok(
   $$ select public.record_refund_processed('pay_test_1', 'rfnd_1', 30000) $$,
   'HB023', null, 'partial refund amounts are rejected');
 select lives_ok(
-  $$ select public.record_refund_processed('pay_test_1', 'rfnd_1', 60000) $$,
+  $$ select public.record_refund_processed('pay_test_1', 'rfnd_1', 62000) $$,
   'refund.processed is recorded');
 select is(
   (select status::text from public.payments where razorpay_order_id = 'order_test_1'),
@@ -228,7 +228,7 @@ select is(
   (select sum(amount_paise)::int from public.ledger_entries where account = 'held'),
   0, 'nothing is held after the refund');
 select lives_ok(
-  $$ select public.record_refund_processed('pay_test_1', 'rfnd_1', 60000) $$,
+  $$ select public.record_refund_processed('pay_test_1', 'rfnd_1', 62000) $$,
   'replaying refund.processed is accepted');
 select is((select count(*)::int from public.ledger_entries), 4,
   'replayed refund does not post again');

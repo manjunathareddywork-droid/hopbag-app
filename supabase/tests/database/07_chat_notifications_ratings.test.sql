@@ -77,7 +77,7 @@ begin
   perform set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}', true);
   perform public.accept_offer(o.id);
   perform public.record_order_created(rS, '11111111-1111-1111-1111-111111111111', 'order_rS');
-  perform public.record_payment_captured('order_rS', 'pay_rS', 60000);
+  perform public.record_payment_captured('order_rS', 'pay_rS', 62000);
   perform set_config('request.jwt.claims', '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}', true);
   perform public.mark_picked_up(rS, '22222222-2222-2222-2222-222222222222/p.jpg', 1000);
   perform set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}', true);
@@ -151,7 +151,7 @@ select lives_ok(
        '11111111-1111-1111-1111-111111111111', 'order_rA');
      $$,
   'setup: order for rA');
-select lives_ok($$ select public.record_payment_captured('order_rA', 'pay_rA', 60000) $$,
+select lives_ok($$ select public.record_payment_captured('order_rA', 'pay_rA', 62000) $$,
   'setup: rA is paid');
 set local role authenticated;
 

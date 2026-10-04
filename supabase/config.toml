@@ -421,3 +421,7 @@ verify_jwt = false
 # Called by pg_cron with a shared secret, not a user JWT.
 [functions.send-notifications]
 verify_jwt = false
+
+# Called by pg_cron with a shared secret, not a user JWT.
+[functions.purge-chat-photos]
+verify_jwt = false

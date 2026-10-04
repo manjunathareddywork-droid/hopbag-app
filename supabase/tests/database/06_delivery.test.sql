@@ -53,7 +53,7 @@ with reqs as (
 )
 insert into k select item_name, id from reqs;
 
--- Offer, accept and pay for every request (fare Rs 200 + item Rs 400 = Rs 600).
+-- Offer, accept and pay for every request (item Rs 400 + fare Rs 200 + fee Rs 20 = Rs 620).
 do $$
 declare
   req record;
@@ -67,7 +67,7 @@ begin
       '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}', true);
     perform public.accept_offer(o.id);
     perform public.record_order_created(req.id, '11111111-1111-1111-1111-111111111111', 'order_' || req.name);
-    perform public.record_payment_captured('order_' || req.name, 'pay_' || req.name, 60000);
+    perform public.record_payment_captured('order_' || req.name, 'pay_' || req.name, 62000);
   end loop;
 end;
 $$;
@@ -153,14 +153,14 @@ select results_eq(
 select results_eq(
   $$ select gross_paise, fee_paise, net_paise, status::text from public.payouts
      where request_id = (select id from k where name = 'rCode') $$,
-  $$ values (60000, 2000, 58000, 'ready') $$,
-  'payout = item + fare - 10% fee on the fare only');
+  $$ values (62000, 2000, 60000, 'ready') $$,
+  'traveler gets item + full fare; the 10% fee the requester paid goes to Hopbag');
 select results_eq(
   $$ select account, amount_paise from public.ledger_entries
      where txn_key like 'release:%'
        and payment_id = (select id from public.payments where razorpay_order_id = 'order_rCode')
      order by account $$,
-  $$ values ('held', -60000), ('platform_fee', 2000), ('traveler', 58000) $$,
+  $$ values ('held', -62000), ('platform_fee', 2000), ('traveler', 60000) $$,
   'ledger moves the held money to the traveler and the platform fee');
 select is(
   (select sum(amount_paise)::int from public.ledger_entries
@@ -296,7 +296,7 @@ select results_eq(
      join public.disputes d on d.request_id = r.id
      join public.payouts p on p.request_id = r.id
      where r.id = (select id from k where name = 'rDisp') $$,
-  $$ values ('settled', 'resolved', 'released', 58000) $$,
+  $$ values ('settled', 'resolved', 'released', 60000) $$,
   'released dispute: settled with payout');
 
 -------------------------------------------------------------------------------
@@ -326,7 +326,7 @@ select lives_ok(
        (select id from public.payments where razorpay_order_id = 'order_rRef'), 'rfnd_rRef') $$,
   'refund request is recorded');
 select lives_ok(
-  $$ select public.record_refund_processed('pay_rRef', 'rfnd_rRef', 60000) $$,
+  $$ select public.record_refund_processed('pay_rRef', 'rfnd_rRef', 62000) $$,
   'refund.processed is recorded');
 select lives_ok(
   $$ select public.close_dispute_refunded((select id from k where name = 'rRef'),

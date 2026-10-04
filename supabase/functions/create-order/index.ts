@@ -18,6 +18,7 @@ type Quote = {
   item_name: string;
   item_price_paise: number;
   fare_paise: number;
+  fee_paise: number;
   amount_paise: number;
   existing_order_id: string | null;
 };
@@ -57,6 +58,7 @@ Deno.serve(
       amount_paise: quote.amount_paise,
       item_price_paise: quote.item_price_paise,
       fare_paise: quote.fare_paise,
+      fee_paise: quote.fee_paise,
       item_name: quote.item_name,
     });
   }),

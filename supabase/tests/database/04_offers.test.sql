@@ -85,8 +85,8 @@ grant select on t, r to authenticated;
 -------------------------------------------------------------------------------
 select results_eq(
   $$ select min_paise, max_paise from public.fare_band(1000) $$,
-  $$ values (10000, 50000) $$,
-  'fare band for 1 kg is Rs 100 to Rs 500');
+  $$ values (5000, 50000) $$,
+  'fare band for 1 kg is Rs 50 to Rs 500');
 select results_eq(
   $$ select min_paise, max_paise from public.fare_band(200) $$,
   $$ values (5000, 10000) $$,
@@ -131,7 +131,7 @@ select is_empty(
 -- Making offers
 -------------------------------------------------------------------------------
 select throws_ok(
-  $$ select public.make_offer((select id from r where name = 'rA'), (select id from t where name = 'tT'), 9999) $$,
+  $$ select public.make_offer((select id from r where name = 'rA'), (select id from t where name = 'tT'), 4999) $$,
   'HB015', null, 'fare below the band is rejected');
 select throws_ok(
   $$ select public.make_offer((select id from r where name = 'rA'), (select id from t where name = 'tT'), 50001) $$,
