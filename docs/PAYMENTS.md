@@ -94,9 +94,13 @@ supabase functions deploy create-order verify-payment refund-payment razorpay-we
 - **Secret:** the same value as `RAZORPAY_WEBHOOK_SECRET`
 - **Events:** `payment.captured`, `order.paid`, `payment.failed`, `refund.processed`
 
-**Test payments:**
-- **Card:** 4111 1111 1111 1111, any future expiry, any CVV, any OTP.
-- **UPI:** `success@razorpay` succeeds and `failure@razorpay` fails.
+**Test payments.** These are Indian (domestic) test cards. Razorpay treats some well-known test cards, such as 4111 1111 1111 1111, as **international**, and a new Indian account rejects international cards.
+- **UPI (simplest):** `success@razorpay` succeeds and `failure@razorpay` fails.
+- **Visa debit:** 4100 2800 0000 1007
+- **Mastercard:** 5555 5100 0008 1006
+- **RuPay:** 6527 6589 0000 1005
+
+Use any future expiry, any CVV and any OTP. In test mode, cancelling on the bank page still counts as a successful payment. See razorpay.com/docs/payments/payments/test-card-details.
 
 ## Before going live
 
