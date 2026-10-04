@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button } from '@/components/button';
 import { Screen } from '@/components/screen';
 import { Text } from '@/components/text';
+import { useIsAdmin } from '@/features/admin/hooks';
 import { useMyProfile } from '@/features/profile/hooks';
 import { t } from '@/i18n';
 import { spacing } from '@/theme';
@@ -13,6 +14,7 @@ const logo = require('@/assets/brand/logo/hopbag-logo-stacked-onlight.svg');
 
 export default function HomeScreen() {
   const { data: profile } = useMyProfile();
+  const isAdmin = useIsAdmin().data === true;
   const firstName = profile?.full_name.split(' ')[0] ?? '';
 
   return (
@@ -42,6 +44,11 @@ export default function HomeScreen() {
         <Link href="/account" asChild>
           <Button title={t('home.account')} variant="secondary" />
         </Link>
+        {isAdmin ? (
+          <Link href="/admin" asChild>
+            <Button title={t('admin.open')} variant="secondary" />
+          </Link>
+        ) : null}
       </View>
     </Screen>
   );

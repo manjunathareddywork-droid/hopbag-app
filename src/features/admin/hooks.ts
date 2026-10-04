@@ -19,13 +19,15 @@ export const adminKeys = {
   verification: (id: string) => ['admin', 'verification', id] as const,
 };
 
+/** Re-checked whenever a screen using it opens, so a new or removed admin shows up at once. */
 export function useIsAdmin() {
   const userId = useSession().session?.user.id;
   return useQuery({
     queryKey: adminKeys.isAdmin(userId ?? 'none'),
     queryFn: fetchIsAdmin,
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 }
 
