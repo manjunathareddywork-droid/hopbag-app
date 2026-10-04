@@ -68,11 +68,25 @@ select cron.schedule('clean-rate-limits', '17 * * * *',
 -- Suspension (admins). A suspended person can sign in and read, but cannot post
 -- requests, trips, offers, messages or reports.
 -------------------------------------------------------------------------------
-alter table public.profiles
-  add column suspended_at timestamptz,
-  add column suspension_reason text check (suspension_reason is null or char_length(suspension_reason) <= 300);
--- No grants: profile grants are per column, so clients cannot write these.
+-- Its own table, not profile columns: profiles are readable by every signed-in
+-- user, and the reason for a suspension must not be.
+create table public.account_suspensions (
+  user_id uuid primary key references public.profiles (id) on delete cascade,
+  reason text check (reason is null or char_length(reason) <= 300),
+  suspended_by uuid references auth.users (id),
+  created_at timestamptz not null default now()
+);
 
+alter table public.account_suspensions enable row level security;
+revoke all on public.account_suspensions from anon, authenticated;
+grant select on public.account_suspensions to authenticated;
+
+create policy "People see their own suspension, admins see all"
+  on public.account_suspensions for select
+  to authenticated
+  using (user_id = (select auth.uid()) or (select public.is_admin()));
+
+/** Only answers about yourself (or for admins and server code), so it cannot be used to probe others. */
 create function public.is_suspended(p_user_id uuid)
 returns boolean
 language sql
@@ -80,7 +94,8 @@ stable
 security definer
 set search_path = ''
 as $$
-  select coalesce((select suspended_at is not null from public.profiles where id = p_user_id), false);
+  select exists (select 1 from public.account_suspensions where user_id = p_user_id)
+     and ((select auth.uid()) is null or (select auth.uid()) = p_user_id or public.is_admin());
 $$;
 
 revoke execute on function public.is_suspended(uuid) from public, anon;
@@ -119,6 +134,7 @@ create policy "Users unblock"
   to authenticated
   using (blocker_id = (select auth.uid()));
 
+/** Only answers when the caller is one of the two (or server code), so it cannot be used to probe others. */
 create function public.is_blocked_between(p_a uuid, p_b uuid)
 returns boolean
 language sql
@@ -126,10 +142,11 @@ stable
 security definer
 set search_path = ''
 as $$
-  select exists (
-    select 1 from public.user_blocks
-    where (blocker_id = p_a and blocked_id = p_b) or (blocker_id = p_b and blocked_id = p_a)
-  );
+  select ((select auth.uid()) is null or (select auth.uid()) in (p_a, p_b))
+     and exists (
+       select 1 from public.user_blocks
+       where (blocker_id = p_a and blocked_id = p_b) or (blocker_id = p_b and blocked_id = p_a)
+     );
 $$;
 
 revoke execute on function public.is_blocked_between(uuid, uuid) from public, anon;
@@ -312,10 +329,10 @@ begin
     raise exception 'Report not found or already reviewed' using errcode = 'HB010';
   end if;
   if p_suspend then
-    update public.profiles
-    set suspended_at = coalesce(suspended_at, now()),
-        suspension_reason = left(coalesce(nullif(btrim(p_note), ''), report.category), 300)
-    where id = report.reported_user_id;
+    insert into public.account_suspensions (user_id, reason, suspended_by)
+    values (report.reported_user_id,
+            left(coalesce(nullif(btrim(p_note), ''), report.category), 300), auth.uid())
+    on conflict (user_id) do nothing;
   end if;
   return report;
 end;
@@ -334,10 +351,13 @@ begin
   if p_user_id = auth.uid() then
     raise exception 'Admins cannot suspend themselves' using errcode = 'HB010';
   end if;
-  update public.profiles
-  set suspended_at = case when p_suspended then coalesce(suspended_at, now()) end,
-      suspension_reason = case when p_suspended then left(nullif(btrim(p_reason), ''), 300) end
-  where id = p_user_id;
+  if p_suspended then
+    insert into public.account_suspensions (user_id, reason, suspended_by)
+    values (p_user_id, left(nullif(btrim(p_reason), ''), 300), auth.uid())
+    on conflict (user_id) do update set reason = excluded.reason;
+  else
+    delete from public.account_suspensions where user_id = p_user_id;
+  end if;
 end;
 $$;
 
@@ -426,10 +446,10 @@ declare
   who text := coalesce(auth.uid()::text, 'anon');
 begin
   if tg_table_name = 'app_errors' then
-    if not public.hit_rate_limit('errors:' || who, case when who = 'anon' then 300 else 30 end, 60) then
+    if not public.hit_rate_limit('errors:' || who, case when who = 'anon' then 60 else 30 end, 60) then
       return null;
     end if;
-  elsif not public.hit_rate_limit('events:' || who, case when who = 'anon' then 1000 else 120 end, 60) then
+  elsif not public.hit_rate_limit('events:' || who, case when who = 'anon' then 120 else 120 end, 60) then
     return null;
   end if;
   return new;
@@ -466,7 +486,7 @@ begin
   return jsonb_build_object(
     'users', (select count(*) from public.profiles),
     'verified_travelers', (select count(*) from public.profiles where traveler_verified_at is not null),
-    'suspended_users', (select count(*) from public.profiles where suspended_at is not null),
+    'suspended_users', (select count(*) from public.account_suspensions),
     'open_requests', (select count(*) from public.item_requests where status in ('open', 'offered')),
     'in_progress', (select count(*) from public.item_requests
                     where status in ('accepted', 'paid', 'picked_up', 'delivered')),
@@ -551,3 +571,31 @@ revoke execute on function public.admin_error_groups(integer) from public, anon;
 grant execute on function public.admin_dashboard() to authenticated;
 grant execute on function public.admin_funnel(integer) to authenticated;
 grant execute on function public.admin_error_groups(integer) to authenticated;
+
+-------------------------------------------------------------------------------
+-- Security review follow-ups (docs/SECURITY_REVIEW.md)
+-------------------------------------------------------------------------------
+
+-- Helpers that signed-out users never need. (Postgres grants EXECUTE to PUBLIC
+-- by default; these were reachable by anon through the API, harmlessly.)
+revoke execute on function public.find_blocked_term(text) from public, anon;
+revoke execute on function public.setting(text) from public, anon;
+revoke execute on function public.today_ist() from public, anon;
+revoke execute on function public.request_transition_allowed(public.request_status, public.request_status)
+  from public, anon;
+grant execute on function public.find_blocked_term(text) to authenticated;
+grant execute on function public.setting(text) to authenticated;
+grant execute on function public.today_ist() to authenticated;
+grant execute on function public.request_transition_allowed(public.request_status, public.request_status)
+  to authenticated;
+
+-- Indexes for foreign keys used in lookups and RLS checks (advisor: unindexed_foreign_keys).
+create index if not exists item_requests_accepted_offer_idx on public.item_requests (accepted_offer_id);
+create index if not exists payments_offer_idx on public.payments (offer_id);
+create index if not exists payments_traveler_idx on public.payments (traveler_id);
+create index if not exists payments_requester_idx on public.payments (requester_id);
+create index if not exists payouts_traveler_idx on public.payouts (traveler_id);
+create index if not exists payouts_request_idx on public.payouts (request_id);
+create index if not exists deliveries_traveler_idx on public.deliveries (traveler_id);
+create index if not exists disputes_request_idx on public.disputes (request_id);
+create index if not exists profiles_home_city_idx on public.profiles (home_city_id);

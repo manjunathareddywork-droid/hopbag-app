@@ -4,7 +4,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(52);
+select plan(56);
 
 insert into auth.users (id, aud, role, phone) values
   ('11111111-1111-1111-1111-111111111111', 'authenticated', 'authenticated', '919000000001'),
@@ -70,6 +70,11 @@ set local request.jwt.claims to '{"sub": "22222222-2222-2222-2222-222222222222",
 select is_empty($$ select id from public.item_requests $$,
   'a blocked traveler no longer sees the requester''s open requests');
 select is_empty($$ select * from public.user_blocks $$, 'people cannot see who blocked them');
+set local request.jwt.claims to '{"sub": "33333333-3333-3333-3333-333333333333", "role": "authenticated"}';
+select ok(
+  not public.is_blocked_between('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222'),
+  'a third person cannot find out that R blocked T');
+set local request.jwt.claims to '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}';
 select throws_ok(
   $$ select public.make_offer((select id from k where name = 'rA'), (select id from k where name = 'trip'), 15000) $$,
   'HB030', null, 'a blocked traveler cannot make an offer');
@@ -155,8 +160,16 @@ select throws_ok(
   $$ select public.set_suspension('44444444-4444-4444-4444-444444444444', true) $$,
   'HB010', null, 'admins cannot suspend themselves');
 
+set local request.jwt.claims to '{"sub": "33333333-3333-3333-3333-333333333333", "role": "authenticated"}';
+select is_empty($$ select user_id from public.account_suspensions $$,
+  'other people cannot see who is suspended or why');
+select ok(not public.is_suspended('22222222-2222-2222-2222-222222222222'),
+  'is_suspended cannot be used to probe other people');
+
 set local request.jwt.claims to '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}';
 select ok(public.is_suspended('22222222-2222-2222-2222-222222222222'), 'the traveler is suspended');
+select is((select reason from public.account_suspensions), 'Confirmed, suspending',
+  'the suspended person can see the reason');
 select throws_ok(
   $$ insert into public.item_requests
        (category_id, item_name, weight_grams, from_city_id, to_city_id, deadline, budget_paise, item_price_paise)
