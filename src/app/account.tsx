@@ -3,6 +3,9 @@ import { Alert, StyleSheet, View } from 'react-native';
 
 import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
+import { DetailRow } from '@/components/detail-row';
+import { VerifiedBadge } from '@/components/verified-badge';
+import { useIsAdmin } from '@/features/admin/hooks';
 import { Screen } from '@/components/screen';
 import { Text } from '@/components/text';
 import { signOut } from '@/features/auth/api';
@@ -19,6 +22,7 @@ export default function AccountScreen() {
   const { data: profile } = useMyProfile();
   const { data: states } = useStates();
   const { data: cities } = useCities();
+  const isAdmin = useIsAdmin().data === true;
   const { data: avatarUrl } = useAvatarUrl(profile?.avatar_path);
 
   if (!profile) return null;
@@ -37,11 +41,12 @@ export default function AccountScreen() {
       <View style={styles.header}>
         <Avatar uri={avatarUrl} name={profile.full_name} size={104} />
         <Text variant="title">{profile.full_name}</Text>
+        {profile.traveler_verified_at ? <VerifiedBadge /> : null}
       </View>
 
       <View style={styles.card}>
-        <Row label={t('account.phone')} value={phone} />
-        <Row
+        <DetailRow label={t('account.phone')} value={phone} />
+        <DetailRow
           label={t('account.home')}
           value={cityLabel(
             cities?.find((c) => c.id === profile.home_city_id),
@@ -51,23 +56,17 @@ export default function AccountScreen() {
       </View>
 
       <View style={styles.actions}>
+        {isAdmin ? (
+          <Link href="/admin" asChild>
+            <Button title={t('admin.open')} />
+          </Link>
+        ) : null}
         <Link href="/edit-profile" asChild>
           <Button title={t('account.edit')} variant="secondary" />
         </Link>
         <Button title={t('account.signOut')} variant="secondary" onPress={confirmSignOut} />
       </View>
     </Screen>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.row}>
-      <Text variant="caption" muted>
-        {label}
-      </Text>
-      <Text variant="body">{value}</Text>
-    </View>
   );
 }
 
@@ -81,12 +80,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-  },
-  row: {
-    padding: spacing.md,
-    gap: spacing.xs,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
   },
   actions: {
     gap: spacing.md,

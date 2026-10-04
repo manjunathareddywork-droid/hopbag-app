@@ -10,6 +10,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { LoadingView } from '@/components/loading-view';
+import { useIsAdmin } from '@/features/admin/hooks';
 import { SessionProvider, useSession } from '@/features/auth/session';
 import { useMyProfile } from '@/features/profile/hooks';
 import { t } from '@/i18n';
@@ -47,6 +48,7 @@ export default function RootLayout() {
 function RootNavigator() {
   const { session, isLoading } = useSession();
   const profile = useMyProfile();
+  const isAdmin = useIsAdmin().data === true;
 
   useEffect(() => {
     if (!isLoading) SplashScreen.hideAsync();
@@ -95,6 +97,17 @@ function RootNavigator() {
         <Stack.Screen name="requests/new" options={{ title: t('requests.newTitle') }} />
         <Stack.Screen name="requests/[id]" options={{ title: t('requests.detailTitle') }} />
         <Stack.Screen name="not-allowed" options={{ title: t('notAllowed.title') }} />
+        <Stack.Screen name="traveler/index" options={{ title: t('traveler.title') }} />
+        <Stack.Screen name="traveler/verify-id" options={{ title: t('verifyId.title') }} />
+        <Stack.Screen name="traveler/trips/new" options={{ title: t('trips.newTitle') }} />
+        <Stack.Screen name="traveler/trips/[id]" options={{ title: t('trips.detailTitle') }} />
+
+        {/* Navigation only: every admin read and review is checked by the database. */}
+        <Stack.Protected guard={isAdmin}>
+          <Stack.Screen name="admin/index" options={{ title: t('admin.title') }} />
+          <Stack.Screen name="admin/verifications/[id]" options={{ title: t('admin.title') }} />
+          <Stack.Screen name="admin/trips/[id]" options={{ title: t('admin.title') }} />
+        </Stack.Protected>
       </Stack.Protected>
     </Stack>
   );

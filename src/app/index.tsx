@@ -36,6 +36,9 @@ export default function HomeScreen() {
         <Link href="/requests" asChild>
           <Button title={t('home.myRequests')} variant="secondary" />
         </Link>
+        <Link href="/traveler" asChild>
+          <Button title={t('home.travel')} variant="secondary" />
+        </Link>
         <Link href="/account" asChild>
           <Button title={t('home.account')} variant="secondary" />
         </Link>
