@@ -42,6 +42,12 @@
           "photosPermission": "Hopbag uses your photos for your profile picture, item photos and travel documents.",
           "cameraPermission": "Hopbag uses the camera to photograph your ID, tickets and items."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#0E3B43"
+        }
       ]
     ],
     "experiments": {
