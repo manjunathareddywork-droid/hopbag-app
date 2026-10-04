@@ -11,6 +11,7 @@ import { Text } from '@/components/text';
 import { fareBand } from '@/features/offers/fare';
 import { useAcceptOffer, useDeclineOffer, useOffersForRequest } from '@/features/offers/hooks';
 import { OfferCard } from '@/features/offers/offer-card';
+import { PaymentCard } from '@/features/payments/payment-card';
 import { useCities, useStates } from '@/features/places/hooks';
 import { cityLabel } from '@/features/places/labels';
 import { dbErrorMessage } from '@/lib/db-errors';
@@ -130,9 +131,20 @@ export default function RequestDetailScreen() {
           value={t('requests.route', { from: city(r.from_city_id), to: city(r.to_city_id) })}
         />
         <DetailRow label={t('requests.fields.deadline')} value={formatDate(r.deadline)} />
+        {r.item_price_paise !== null ? (
+          <DetailRow
+            label={t('requests.fields.itemPrice')}
+            value={formatPaise(r.item_price_paise)}
+          />
+        ) : null}
         <DetailRow label={t('requests.fields.budget')} value={formatPaise(r.budget_paise)} />
         {r.details ? <DetailRow label={t('requests.fields.details')} value={r.details} /> : null}
       </View>
+
+      <PaymentCard
+        request={r}
+        acceptedOffer={(offers.data ?? []).find((o) => o.id === r.accepted_offer_id)}
+      />
 
       <View style={styles.offers}>
         <Text variant="heading">
