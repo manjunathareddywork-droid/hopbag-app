@@ -87,7 +87,8 @@ export const en = {
     deadlinePlaceholder: 'Choose a date',
     budgetLabel: 'What you will pay the traveler (₹)',
     budgetPlaceholder: 'For example, 500',
-    budgetHint: 'Your fee to the traveler. Hopbag holds your payment until the item reaches you.',
+    budgetHint:
+      'Your fee to the traveler. Your payment is held by Razorpay until the item reaches you.',
     photoLabel: 'Photo of the item',
     addPhoto: 'Add a photo',
     changePhoto: 'Change photo',
