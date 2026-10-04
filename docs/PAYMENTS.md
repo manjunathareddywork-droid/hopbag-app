@@ -19,7 +19,19 @@ Hopbag never holds money. Razorpay collects it, holds it and pays it out. Hopbag
 
 A failed attempt (`payment.failed`) is stored but changes nothing: Razorpay lets the requester retry on the same order. A payment row is marked failed only when a new order replaces it, or the request is cancelled.
 
-Releasing the money to the traveler (minus the platform fee) is Phase 6.
+## Delivery and release (Phase 6)
+
+- **Pickup:** the traveler marks the item picked up, with a photo and its weight. The request becomes `picked_up`.
+- **Handover with a code:** the requester shows a one-time 6-digit code.
+  - The code is stored only as a hash and locks after 5 wrong tries.
+  - When the traveler types the right code, the request goes to delivered, then **settled**.
+- **Handover without a code:** the request is `delivered`, and the requester has **48 hours** to confirm or report a problem. A cron job settles it after that.
+- **Settlement releases the payment in the ledger:** `held` −amount, `traveler` +(amount − fee), `platform_fee` +fee. The fee is `platform_fee_bps` of the **traveler's fare only**, never of the item cost. A `payouts` row records it with status `ready`.
+- **Disputes:** either person can report a problem between payment and settlement. This **freezes** the money: nothing settles a disputed request except an admin.
+  - **Pay the traveler:** the admin runs `resolve_dispute_release`, which settles as above.
+  - **Refund the requester:** the `resolve-dispute-refund` Edge Function refunds through Razorpay.
+
+**Not built yet:** moving released money to the traveler's bank. That needs a Razorpay Route transfer to the traveler's linked account (option A below). When Route is approved, settlement will release the on-hold transfer, and the payout's status will change from `ready` to `transferred`. The ledger and screens won't need to change.
 
 ### Why replays can't double-count
 

@@ -59,6 +59,9 @@ Read docs/PRODUCT.md for rules and docs/PHASES.md for the build plan. Work on ON
 - supabase/functions/_shared/razorpay.ts has no imports or Deno APIs so Jest tests it; http.ts is Deno-only. CI runs `deno check --config supabase/functions/deno.json`.
 - Newer Supabase does not auto-grant new tables to anon/authenticated/service_role: always grant explicitly in migrations.
 - Checkout runs Razorpay web checkout in a WebView (Expo Go has no Razorpay SDK). Switch to the native SDK in an EAS build before live payments.
+- Delivery: deliveries / handover_codes (hashed, one-time, 5 tries) / disputes / payouts. All changes via security definer functions; settle_request is internal and the only place money is released (ledger release: held -> traveler + platform_fee; fee on fare only). auto_confirm_deliveries runs every 15 min via pg_cron.
+- A disputed request can only be settled or refunded by an admin (resolve_dispute_release, or the resolve-dispute-refund Edge Function).
+- Functions that must count failed attempts return a status instead of raising (a raise rolls back the counter).
 - Admin screens (src/app/admin) sit behind Stack.Protected on `is_admin()`; review goes through review_verification / review_trip_ticket functions.
 - Blocked items: patterns in public.blocked_terms are matched as whole words in both Postgres (`\m...\M`) and JS (`\b...\b`); src/__tests__/blocked-terms.test.ts runs the seeded list through the app matcher. Avoid false positives (e.g. "gold" alone blocks Nescafe Gold).
 - Request status changes only through DB functions (cancel_request now; later phases add more). The status trigger enforces the PRODUCT.md lifecycle for everyone.
