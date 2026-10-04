@@ -4,6 +4,7 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-n
 import { LoadingView } from '@/components/loading-view';
 import { Text } from '@/components/text';
 import { usePendingTickets, usePendingVerifications } from '@/features/admin/hooks';
+import { useOpenDisputes } from '@/features/delivery/hooks';
 import { useProfilesByIds } from '@/features/profile/hooks';
 import { useCities } from '@/features/places/hooks';
 import { TripCard } from '@/features/travelers/trip-card';
@@ -15,7 +16,9 @@ export default function AdminScreen() {
   const ids = usePendingVerifications();
   const tickets = usePendingTickets();
   const cities = useCities();
+  const disputes = useOpenDisputes();
   const people = useProfilesByIds([
+    ...(disputes.data ?? []).map((d) => d.raised_by),
     ...(ids.data ?? []).map((v) => v.user_id),
     ...(tickets.data ?? []).map((tr) => tr.traveler_id),
   ]);
@@ -47,11 +50,39 @@ export default function AdminScreen() {
           onRefresh={() => {
             ids.refetch();
             tickets.refetch();
+            disputes.refetch();
           }}
         />
       }
     >
-      <Text variant="heading">{t('admin.pendingIds')}</Text>
+      <Text variant="heading">{t('adminDisputes.open')}</Text>
+      {(disputes.data ?? []).length === 0 ? (
+        <Text variant="body" muted>
+          {t('adminDisputes.none')}
+        </Text>
+      ) : (
+        (disputes.data ?? []).map((d) => (
+          <Link
+            key={d.id}
+            href={{ pathname: '/admin/disputes/[requestId]', params: { requestId: d.request_id } }}
+            asChild
+          >
+            <Pressable accessibilityRole="button" style={styles.card}>
+              <Text variant="label">{name(d.raised_by)}</Text>
+              <Text variant="body" muted numberOfLines={2}>
+                {d.reason}
+              </Text>
+              <Text variant="caption" muted>
+                {t('admin.submitted', { date: formatDate(d.created_at.slice(0, 10)) })}
+              </Text>
+            </Pressable>
+          </Link>
+        ))
+      )}
+
+      <View style={styles.section}>
+        <Text variant="heading">{t('admin.pendingIds')}</Text>
+      </View>
       {ids.data.length === 0 ? (
         <Text variant="body" muted>
           {t('admin.nothingPending')}

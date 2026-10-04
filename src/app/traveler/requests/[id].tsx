@@ -8,6 +8,7 @@ import { LoadingView } from '@/components/loading-view';
 import { Screen } from '@/components/screen';
 import { StatusChip } from '@/components/status-chip';
 import { Text } from '@/components/text';
+import { TravelerDeliveryCard } from '@/features/delivery/traveler-delivery-card';
 import { fareBand } from '@/features/offers/fare';
 import { useMakeOffer, useOffersForRequest, useWithdrawOffer } from '@/features/offers/hooks';
 import { OfferForm } from '@/features/offers/offer-form';
@@ -94,6 +95,10 @@ export default function TravelerRequestScreen() {
         <DetailRow label={t('requests.fields.budget')} value={formatPaise(r.budget_paise)} />
         {r.details ? <DetailRow label={t('requests.fields.details')} value={r.details} /> : null}
       </View>
+
+      {mine?.status === 'accepted' && mine.id === r.accepted_offer_id ? (
+        <TravelerDeliveryCard request={r} />
+      ) : null}
 
       {mine && mine.status !== 'withdrawn' ? (
         <View style={[styles.card, styles.inner]}>

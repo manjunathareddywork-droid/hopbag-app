@@ -103,6 +103,11 @@ function RootNavigator() {
         <Stack.Screen name="traveler/trips/[id]" options={{ title: t('trips.detailTitle') }} />
         <Stack.Screen name="traveler/feed" options={{ title: t('offers.feedTitle') }} />
         <Stack.Screen name="pay/[requestId]" options={{ title: t('payment.title') }} />
+        <Stack.Screen
+          name="handover-code/[requestId]"
+          options={{ title: t('delivery.codeTitle') }}
+        />
+        <Stack.Screen name="dispute/[requestId]" options={{ title: t('dispute.title') }} />
         <Stack.Screen name="traveler/requests/[id]" options={{ title: t('offers.requestTitle') }} />
 
         {/* Navigation only: every admin read and review is checked by the database. */}
@@ -110,6 +115,10 @@ function RootNavigator() {
           <Stack.Screen name="admin/index" options={{ title: t('admin.title') }} />
           <Stack.Screen name="admin/verifications/[id]" options={{ title: t('admin.title') }} />
           <Stack.Screen name="admin/trips/[id]" options={{ title: t('admin.title') }} />
+          <Stack.Screen
+            name="admin/disputes/[requestId]"
+            options={{ title: t('adminDisputes.title') }}
+          />
         </Stack.Protected>
       </Stack.Protected>
     </Stack>

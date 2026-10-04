@@ -8,6 +8,7 @@ import { Text } from '@/components/text';
 import { VerifiedBadge } from '@/components/verified-badge';
 import { useCities } from '@/features/places/hooks';
 import { useMyOffers, useRequestsByIds } from '@/features/offers/hooks';
+import { useMyPayouts } from '@/features/delivery/hooks';
 import { useHeldForMe } from '@/features/payments/hooks';
 import { useMyProfile } from '@/features/profile/hooks';
 import { useMyTrips, useMyVerification } from '@/features/travelers/hooks';
@@ -23,7 +24,15 @@ export default function TravelerHomeScreen() {
   const cities = useCities();
   const myOffers = useMyOffers();
   const held = useHeldForMe();
-  const heldTotal = (held.data ?? []).reduce((sum, p) => sum + p.amount_paise, 0);
+  const payouts = useMyPayouts();
+  // A captured payment stays 'captured' after release; released ones show as unlocked.
+  const releasedPayments = new Set((payouts.data ?? []).map((p) => p.payment_id));
+  const heldTotal = (held.data ?? [])
+    .filter((p) => !releasedPayments.has(p.id))
+    .reduce((sum, p) => sum + p.amount_paise, 0);
+  const unlockedTotal = (payouts.data ?? [])
+    .filter((p) => p.status === 'ready')
+    .reduce((sum, p) => sum + p.net_paise, 0);
   const offeredRequests = useRequestsByIds((myOffers.data ?? []).map((o) => o.request_id));
 
   if (verification.isPending || !trips.data || !cities.data) {
@@ -86,6 +95,18 @@ export default function TravelerHomeScreen() {
           <Text variant="heading">{t('payment.heldForYou')}</Text>
           <Text variant="body">
             {t('payment.heldForYouValue', { amount: formatPaise(heldTotal) })}
+          </Text>
+        </View>
+      ) : null}
+
+      {unlockedTotal > 0 ? (
+        <View style={styles.card}>
+          <Text variant="heading">{t('wallet.unlocked')}</Text>
+          <Text variant="body">
+            {t('wallet.unlockedValue', { amount: formatPaise(unlockedTotal) })}
+          </Text>
+          <Text variant="caption" muted>
+            {t('delivery.payoutNote')}
           </Text>
         </View>
       ) : null}

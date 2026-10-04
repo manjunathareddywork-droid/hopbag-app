@@ -11,6 +11,7 @@ import { Text } from '@/components/text';
 import { fareBand } from '@/features/offers/fare';
 import { useAcceptOffer, useDeclineOffer, useOffersForRequest } from '@/features/offers/hooks';
 import { OfferCard } from '@/features/offers/offer-card';
+import { RequesterDeliveryCard } from '@/features/delivery/requester-delivery-card';
 import { PaymentCard } from '@/features/payments/payment-card';
 import { useCities, useStates } from '@/features/places/hooks';
 import { cityLabel } from '@/features/places/labels';
@@ -140,6 +141,8 @@ export default function RequestDetailScreen() {
         <DetailRow label={t('requests.fields.budget')} value={formatPaise(r.budget_paise)} />
         {r.details ? <DetailRow label={t('requests.fields.details')} value={r.details} /> : null}
       </View>
+
+      <RequesterDeliveryCard request={r} />
 
       <PaymentCard
         request={r}
