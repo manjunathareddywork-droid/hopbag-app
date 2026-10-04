@@ -35,7 +35,14 @@
         }
       ],
       "expo-sqlite",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Hopbag uses your photos for your profile picture, item photos and travel documents.",
+          "cameraPermission": "Hopbag uses the camera to photograph your ID, tickets and items."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

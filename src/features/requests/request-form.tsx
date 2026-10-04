@@ -17,7 +17,7 @@ import { addDays, todayIst } from '@/lib/dates';
 import { pickImage } from '@/lib/images';
 import { colors, radius, spacing } from '@/theme';
 
-import { blockedReason } from './errors';
+import { blockedReason } from '@/lib/db-errors';
 import { categoryText } from './labels';
 import {
   emptyRequestForm,

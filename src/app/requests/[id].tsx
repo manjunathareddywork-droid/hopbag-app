@@ -3,13 +3,14 @@ import { useLocalSearchParams } from 'expo-router';
 import { Alert, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { DetailRow } from '@/components/detail-row';
 import { LoadingView } from '@/components/loading-view';
 import { Screen } from '@/components/screen';
 import { StatusChip } from '@/components/status-chip';
 import { Text } from '@/components/text';
 import { useCities, useStates } from '@/features/places/hooks';
 import { cityLabel } from '@/features/places/labels';
-import { requestErrorMessage } from '@/features/requests/errors';
+import { dbErrorMessage } from '@/lib/db-errors';
 import {
   useCancelRequest,
   useCategories,
@@ -36,7 +37,7 @@ export default function RequestDetailScreen() {
   const cancel = useCancelRequest();
 
   if (request.data === null) {
-    return <LoadingView error={t('requests.errors.notFound')} />;
+    return <LoadingView error={t('errors.notFound')} />;
   }
   if (!request.data || !cities.data) {
     return (
@@ -78,25 +79,25 @@ export default function RequestDetailScreen() {
       ) : null}
 
       <View style={styles.card}>
-        <Row
+        <DetailRow
           label={t('requests.fields.category')}
           value={category ? categoryText(category).name : r.category_id}
         />
-        <Row label={t('requests.fields.weight')} value={formatGrams(r.weight_grams)} />
-        <Row
+        <DetailRow label={t('requests.fields.weight')} value={formatGrams(r.weight_grams)} />
+        <DetailRow
           label={t('requests.fields.route')}
           value={t('requests.route', { from: city(r.from_city_id), to: city(r.to_city_id) })}
         />
-        <Row label={t('requests.fields.deadline')} value={formatDate(r.deadline)} />
-        <Row label={t('requests.fields.budget')} value={formatPaise(r.budget_paise)} />
-        {r.details ? <Row label={t('requests.fields.details')} value={r.details} /> : null}
+        <DetailRow label={t('requests.fields.deadline')} value={formatDate(r.deadline)} />
+        <DetailRow label={t('requests.fields.budget')} value={formatPaise(r.budget_paise)} />
+        {r.details ? <DetailRow label={t('requests.fields.details')} value={r.details} /> : null}
       </View>
 
       {CANCELLABLE.includes(r.status) ? (
         <View style={styles.actions}>
           {cancel.error ? (
             <Text variant="body" style={styles.error}>
-              {requestErrorMessage(cancel.error, 'requests.cancelFailed')}
+              {dbErrorMessage(cancel.error, 'requests.cancelFailed')}
             </Text>
           ) : null}
           <Button
@@ -108,17 +109,6 @@ export default function RequestDetailScreen() {
         </View>
       ) : null}
     </Screen>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.row}>
-      <Text variant="caption" muted>
-        {label}
-      </Text>
-      <Text variant="body">{value}</Text>
-    </View>
   );
 }
 
@@ -137,12 +127,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-  },
-  row: {
-    padding: spacing.md,
-    gap: spacing.xs,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
   },
   actions: {
     gap: spacing.md,

@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { LoadingView } from '@/components/loading-view';
 import { Screen } from '@/components/screen';
 import { useCities, useStates } from '@/features/places/hooks';
-import { requestErrorMessage } from '@/features/requests/errors';
+import { dbErrorMessage } from '@/lib/db-errors';
 import { useBlockedTerms, useCategories, useCreateRequest } from '@/features/requests/hooks';
 import { RequestForm } from '@/features/requests/request-form';
 import { t } from '@/i18n';
@@ -35,9 +35,7 @@ export default function NewRequestScreen() {
         blockedTerms={blockedTerms.data}
         states={states.data}
         saving={create.isPending}
-        saveError={
-          create.error ? requestErrorMessage(create.error, 'requests.submitFailed') : undefined
-        }
+        saveError={create.error ? dbErrorMessage(create.error, 'requests.submitFailed') : undefined}
         onSubmit={(values) =>
           create.mutate(values, {
             onSuccess: (created) =>

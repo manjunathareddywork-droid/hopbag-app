@@ -22,6 +22,7 @@ export const colors = {
   danger: '#B3261E',
   chip: '#E1EEF0',
   chipMuted: '#ECEFF0',
+  dangerSoft: '#F9E3E1',
 } as const;
 
 /** Font family names, as registered by useFonts in src/app/_layout.tsx. */

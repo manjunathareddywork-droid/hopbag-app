@@ -1,11 +1,13 @@
+import { formatGrams } from '@/features/requests/weight';
 import { t, type StringKey } from '@/i18n';
-
-import { formatGrams } from './weight';
 
 type DbError = { code?: string; details?: string | null };
 
-/** Turns a database rule error (HB0xx codes, see the item_requests migration) into a message. */
-export function requestErrorMessage(error: unknown, fallback: StringKey): string {
+/**
+ * Turns a database rule error into a message people can act on. The HB0xx codes
+ * are listed at the top of the item_requests and travelers migrations.
+ */
+export function dbErrorMessage(error: unknown, fallback: StringKey): string {
   const { code, details } = (error ?? {}) as DbError;
   switch (code) {
     case 'HB001':
@@ -18,10 +20,25 @@ export function requestErrorMessage(error: unknown, fallback: StringKey): string
       return t('requests.errors.sameState');
     case 'HB005':
       return t('requests.errors.deadlineRange');
+    case 'HB006':
+      return t('trips.errors.dateRange', { days: details ?? '' });
+    case 'HB007': {
+      const [items, grams] = (details ?? '').split(',');
+      return t('trips.errors.overLimit', {
+        items: items ?? '',
+        weight: formatGrams(Number(grams) || 0),
+      });
+    }
     case 'HB010':
-      return t('requests.errors.statusChange');
+      return t('errors.alreadyChanged');
     case 'HB011':
-      return t('requests.errors.notFound');
+      return t('errors.notFound');
+    case 'HB012':
+      return t('errors.adminsOnly');
+    case 'HB013':
+      return t('verify.errors.alreadySubmitted');
+    case 'HB014':
+      return t('admin.reasonRequired');
     default:
       return t(fallback);
   }
