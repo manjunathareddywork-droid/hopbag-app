@@ -51,6 +51,10 @@ Read docs/PRODUCT.md for rules and docs/PHASES.md for the build plan. Work on ON
 - Who can carry: `public.trip_can_carry(trip_id)` (verified traveler + approved ticket + active upcoming trip). Phase 4 offers must check it in the database.
 - Trip limits (items, grams, days ahead) live in `public.app_settings`, read with `public.setting(key)`; the app reads them too (useSettings). Don't hard-code them.
 - ID photos and tickets are in the private `traveler-docs` bucket: owner and admins can read, owners cannot change or delete. Use short signed URLs.
+- Offers change only through make_offer / withdraw_offer / accept_offer / decline_offer (security definer). Lock order is trip, then request. accept_offer re-checks trip caps under lock; pending offers do not reserve space.
+- Matching is by state pair (exact city matches sorted first); request_feed(trip_id) runs with the caller's rights, so only verified travelers get rows.
+- Fare band: public.fare_band(weight) from app_settings (fare_*); src/features/offers/fare.ts must use the same integer maths.
+- Requesters never read trips (PNR/ticket); offers carry travel_date and mode copied from the trip.
 - Admin screens (src/app/admin) sit behind Stack.Protected on `is_admin()`; review goes through review_verification / review_trip_ticket functions.
 - Blocked items: patterns in public.blocked_terms are matched as whole words in both Postgres (`\m...\M`) and JS (`\b...\b`); src/__tests__/blocked-terms.test.ts runs the seeded list through the app matcher. Avoid false positives (e.g. "gold" alone blocks Nescafe Gold).
 - Request status changes only through DB functions (cancel_request now; later phases add more). The status trigger enforces the PRODUCT.md lifecycle for everyone.
