@@ -4,6 +4,8 @@ import { Button } from '@/components/button';
 import { Text } from '@/components/text';
 import { VerifiedBadge } from '@/components/verified-badge';
 import { t, type StringKey } from '@/i18n';
+import { RatingBadge } from '@/features/ratings/rating-badge';
+import type { RatingSummary } from '@/features/ratings/api';
 import type { Offer, Profile } from '@/lib/database.types';
 import { formatDate } from '@/lib/dates';
 import { formatPaise } from '@/lib/money';
@@ -12,6 +14,7 @@ import { colors, radius, spacing } from '@/theme';
 type Props = {
   offer: Offer;
   traveler: Profile | undefined;
+  rating?: RatingSummary;
   /** Show Accept/Decline (requester, offer pending, request still taking offers). */
   canRespond: boolean;
   busy: boolean;
@@ -20,7 +23,15 @@ type Props = {
 };
 
 /** An offer as the requester sees it: who, when, how, and the fare. Never the PNR. */
-export function OfferCard({ offer, traveler, canRespond, busy, onAccept, onDecline }: Props) {
+export function OfferCard({
+  offer,
+  traveler,
+  rating,
+  canRespond,
+  busy,
+  onAccept,
+  onDecline,
+}: Props) {
   return (
     <View style={[styles.card, offer.status === 'accepted' && styles.accepted]}>
       <View style={styles.top}>
@@ -29,6 +40,7 @@ export function OfferCard({ offer, traveler, canRespond, busy, onAccept, onDecli
         </Text>
         <Text variant="heading">{formatPaise(offer.fare_paise)}</Text>
       </View>
+      <RatingBadge summary={rating} />
       {traveler?.traveler_verified_at ? (
         <View style={styles.badge}>
           <VerifiedBadge />

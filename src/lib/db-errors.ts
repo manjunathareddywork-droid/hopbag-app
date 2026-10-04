@@ -76,6 +76,8 @@ export function dbErrorMessage(error: unknown, fallback: StringKey): string {
       return t('delivery.codeLocked');
     case 'HB027':
       return t('dispute.reasonShort');
+    case 'HB028':
+      return t('chat.phoneBlocked');
     // Edge Function codes (supabase/functions/_shared/http.ts)
     case 'bad_signature':
       return t('payment.errors.badSignature');

@@ -129,6 +129,67 @@ type PayoutRow = {
   created_at: string;
 };
 
+export type NotificationKind =
+  | 'offer_received'
+  | 'offer_accepted'
+  | 'offer_not_chosen'
+  | 'request_paid'
+  | 'picked_up'
+  | 'handed_over'
+  | 'completed'
+  | 'payout_unlocked'
+  | 'disputed'
+  | 'dispute_resolved'
+  | 'refunded'
+  | 'expired'
+  | 'message'
+  | 'rated'
+  | 'id_approved'
+  | 'id_rejected'
+  | 'ticket_approved'
+  | 'ticket_rejected';
+
+export type NotificationParams = {
+  item?: string;
+  name?: string;
+  amount?: number;
+  preview?: string;
+  reason?: string;
+  resolution?: 'released' | 'refunded';
+  stars?: number;
+  deadline?: string;
+};
+
+type MessageRow = {
+  id: number;
+  request_id: string;
+  sender_id: string;
+  body: string;
+  created_at: string;
+};
+
+type NotificationRow = {
+  id: number;
+  user_id: string;
+  kind: NotificationKind;
+  request_id: string | null;
+  trip_id: string | null;
+  params: NotificationParams;
+  created_at: string;
+  read_at: string | null;
+  push_claimed_at: string | null;
+};
+
+type RatingRow = {
+  id: string;
+  request_id: string;
+  rater_id: string;
+  ratee_id: string;
+  stars: number;
+  comment: string;
+  created_at: string;
+};
+
 export type OfferStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'closed';
 
 type OfferRow = {
@@ -285,6 +346,30 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      messages: {
+        Row: MessageRow;
+        Insert: { request_id: string; body: string };
+        Update: never;
+        Relationships: [];
+      };
+      notifications: {
+        Row: NotificationRow;
+        Insert: never;
+        Update: { read_at?: string | null };
+        Relationships: [];
+      };
+      ratings: {
+        Row: RatingRow;
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      push_tokens: {
+        Row: { token: string; user_id: string; platform: 'ios' | 'android'; updated_at: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       deliveries: {
         Row: DeliveryRow;
         Insert: never;
@@ -384,6 +469,18 @@ export type Database = {
         Args: { p_request_id: string; p_note?: string };
         Returns: DisputeRow;
       };
+      register_push_token: {
+        Args: { p_token: string; p_platform: 'ios' | 'android' };
+        Returns: undefined;
+      };
+      rate_counterpart: {
+        Args: { p_request_id: string; p_stars: number; p_comment?: string };
+        Returns: RatingRow;
+      };
+      rating_summary: {
+        Args: { p_user_ids: string[] };
+        Returns: { user_id: string; average: number; count: number }[];
+      };
       request_traveler: {
         Args: { p_request_id: string };
         Returns: string | null;
@@ -422,3 +519,6 @@ export type Payment = Tables['payments']['Row'];
 export type Delivery = Tables['deliveries']['Row'];
 export type Dispute = Tables['disputes']['Row'];
 export type Payout = Tables['payouts']['Row'];
+export type Message = Tables['messages']['Row'];
+export type AppNotification = Tables['notifications']['Row'];
+export type Rating = Tables['ratings']['Row'];

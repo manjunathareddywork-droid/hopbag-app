@@ -1,6 +1,7 @@
 import { isAuthApiError, isAuthRetryableFetchError } from '@supabase/supabase-js';
 
 import type { StringKey } from '@/i18n';
+import { unregisterPush } from '@/lib/push';
 import { queryClient } from '@/lib/query-client';
 import { supabase } from '@/lib/supabase';
 
@@ -15,6 +16,7 @@ export async function verifyOtp(phone: string, token: string) {
 }
 
 export async function signOut() {
+  await unregisterPush();
   await supabase.auth.signOut();
   queryClient.clear();
 }

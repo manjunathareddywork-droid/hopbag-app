@@ -505,6 +505,91 @@ export const en = {
     yes: 'Yes',
     failed: 'Could not resolve the dispute. Please try again.',
   },
+  chat: {
+    title: 'Chat',
+    open: 'Chat',
+    openWithTraveler: 'Chat with the traveler',
+    openWithRequester: 'Chat with the requester',
+    placeholder: 'Write a message',
+    send: 'Send',
+    empty: 'No messages yet. Say hello and agree where to hand over the item.',
+    closed: 'This chat is closed. You can still read it.',
+    phoneBlocked:
+      'Phone numbers can be shared after payment. Until then, please keep the conversation on Hopbag.',
+    sendFailed: 'Could not send. Check your internet and try again.',
+    you: 'You',
+  },
+  notifications: {
+    title: 'Updates',
+    open: 'Updates',
+    openWithCount: 'Updates ({{count}})',
+    empty: 'No updates yet.',
+    kinds: {
+      offer_received: {
+        title: 'New offer',
+        body: '{{name}} offered {{amount}} to carry {{item}}.',
+      },
+      offer_accepted: {
+        title: 'Offer accepted',
+        body: 'Your offer of {{amount}} for {{item}} was accepted.',
+      },
+      offer_not_chosen: {
+        title: 'Offer not chosen',
+        body: 'The requester chose another traveler for {{item}}.',
+      },
+      request_paid: {
+        title: 'Payment received',
+        body: '{{item}} is paid. You can buy or collect it now.',
+      },
+      picked_up: { title: 'Item picked up', body: 'The traveler has picked up {{item}}.' },
+      handed_over: {
+        title: 'Did you get it?',
+        body: 'The traveler says {{item}} was handed over. Confirm by {{deadline}}.',
+      },
+      completed: {
+        title: 'Delivery completed',
+        body: '{{item}} is delivered. Thank you for using Hopbag!',
+      },
+      payout_unlocked: {
+        title: 'Payment unlocked',
+        body: '{{amount}} is unlocked for delivering {{item}}.',
+      },
+      disputed: {
+        title: 'Problem reported',
+        body: 'A problem was reported for {{item}}. Payment is on hold.',
+      },
+      dispute_released: {
+        title: 'Review finished',
+        body: 'Hopbag released the payment for {{item}} to the traveler.',
+      },
+      dispute_refunded: {
+        title: 'Review finished',
+        body: 'Hopbag refunded the requester for {{item}}.',
+      },
+      refunded: { title: 'Refunded', body: 'The payment for {{item}} was refunded.' },
+      expired: { title: 'Request expired', body: '{{item}} passed its date without a traveler.' },
+      message: { title: '{{name}}', body: '{{preview}}' },
+      rated: { title: 'You were rated', body: 'You got {{stars}} stars for {{item}}.' },
+      id_approved: { title: 'ID verified', body: 'You are now a verified traveler.' },
+      id_rejected: { title: 'ID not accepted', body: '{{reason}}' },
+      ticket_approved: {
+        title: 'Ticket approved',
+        body: 'You can now offer to carry items on this trip.',
+      },
+      ticket_rejected: { title: 'Ticket not accepted', body: '{{reason}}' },
+    },
+  },
+  ratings: {
+    rateTraveler: 'Rate the traveler',
+    rateRequester: 'Rate the requester',
+    starsLabel: '{{stars}} stars',
+    commentLabel: 'Comment',
+    submit: 'Send rating',
+    failed: 'Could not save your rating. Please try again.',
+    youRated: 'You gave {{stars}} stars. Thank you!',
+    summary: '★ {{average}} ({{count}} ratings)',
+    new: 'New on Hopbag',
+  },
   admin: {
     title: 'Admin review',
     open: 'Admin: review travelers',
