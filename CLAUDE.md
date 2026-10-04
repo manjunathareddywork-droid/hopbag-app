@@ -47,7 +47,11 @@ Read docs/PRODUCT.md for rules and docs/PHASES.md for the build plan. Work on ON
 - Expo SDK 57. Testing Library v14: `render` and `fireEvent` are async, always await them. Use `renderWithQuery` from src/test-utils.tsx.
 - Read local files (photos, picker/manipulator output) with expo-file-system `new File(uri)`, never `fetch(file://...)`: on Android it can return an error text body without failing.
 - Typed routes: if tsc says a new route path is not assignable, run `npx expo start` once to regenerate .expo/types.
-- DB rule errors use custom SQLSTATEs (HB001 blocked item ... HB011 not found), listed at the top of the item_requests migration; the app maps them in src/features/requests/errors.ts. Add new ones there too.
+- DB rule errors use custom SQLSTATEs (HB001 ... HB014), listed at the top of the item_requests and travelers migrations; the app maps them in src/lib/db-errors.ts. Add new ones in both places.
+- Who can carry: `public.trip_can_carry(trip_id)` (verified traveler + approved ticket + active upcoming trip). Phase 4 offers must check it in the database.
+- Trip limits (items, grams, days ahead) live in `public.app_settings`, read with `public.setting(key)`; the app reads them too (useSettings). Don't hard-code them.
+- ID photos and tickets are in the private `traveler-docs` bucket: owner and admins can read, owners cannot change or delete. Use short signed URLs.
+- Admin screens (src/app/admin) sit behind Stack.Protected on `is_admin()`; review goes through review_verification / review_trip_ticket functions.
 - Blocked items: patterns in public.blocked_terms are matched as whole words in both Postgres (`\m...\M`) and JS (`\b...\b`); src/__tests__/blocked-terms.test.ts runs the seeded list through the app matcher. Avoid false positives (e.g. "gold" alone blocks Nescafe Gold).
 - Request status changes only through DB functions (cancel_request now; later phases add more). The status trigger enforces the PRODUCT.md lifecycle for everyone.
 - Admins: rows in public.admins (add via the SQL editor until Phase 3). Category/city/blocked-term edits are admin-only by RLS.
