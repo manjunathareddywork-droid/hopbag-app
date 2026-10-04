@@ -417,3 +417,7 @@ enabled = true
 # Razorpay calls this without a user JWT; requests are verified by signature.
 [functions.razorpay-webhook]
 verify_jwt = false
+
+# Called by pg_cron with a shared secret, not a user JWT.
+[functions.send-notifications]
+verify_jwt = false
