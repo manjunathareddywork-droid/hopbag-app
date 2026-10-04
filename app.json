@@ -9,7 +9,8 @@
     "userInterfaceStyle": "light",
     "backgroundColor": "#F7F9F9",
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.hopbag.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +19,8 @@
         "backgroundImage": "./assets/brand/icon/png/hopbag-android-background-432.png",
         "monochromeImage": "./assets/brand/icon/png/hopbag-android-monochrome-432.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.hopbag.app"
     },
     "web": {
       "output": "static",
