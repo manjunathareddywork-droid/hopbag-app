@@ -1,5 +1,4 @@
 import { Image } from 'expo-image';
-import { AdminOnly } from '@/features/admin/admin-only';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
@@ -7,6 +6,7 @@ import { DetailRow } from '@/components/detail-row';
 import { LoadingView } from '@/components/loading-view';
 import { Screen } from '@/components/screen';
 import { VerifiedBadge } from '@/components/verified-badge';
+import { AdminOnly } from '@/features/admin/admin-only';
 import { useReviewTicket } from '@/features/admin/hooks';
 import { useProfilesByIds } from '@/features/profile/hooks';
 import { useCities, useStates } from '@/features/places/hooks';

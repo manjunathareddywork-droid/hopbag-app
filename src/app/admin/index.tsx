@@ -1,9 +1,9 @@
 import { Link } from 'expo-router';
-import { AdminOnly } from '@/features/admin/admin-only';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { LoadingView } from '@/components/loading-view';
 import { Text } from '@/components/text';
+import { AdminOnly } from '@/features/admin/admin-only';
 import { usePendingTickets, usePendingVerifications } from '@/features/admin/hooks';
 import { useOpenDisputes } from '@/features/delivery/hooks';
 import { useProfilesByIds } from '@/features/profile/hooks';
