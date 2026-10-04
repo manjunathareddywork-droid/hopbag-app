@@ -68,4 +68,9 @@ describe('dbErrorMessage', () => {
       en.payment.errors.badSignature,
     );
   });
+
+  it('explains handover code problems', () => {
+    expect(dbErrorMessage({ code: 'HB025' }, 'delivery.actionFailed')).toBe(en.delivery.noCodeYet);
+    expect(dbErrorMessage({ code: 'HB027' }, 'dispute.failed')).toBe(en.dispute.reasonShort);
+  });
 });

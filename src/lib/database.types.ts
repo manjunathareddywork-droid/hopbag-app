@@ -88,6 +88,47 @@ type PaymentRow = {
   updated_at: string;
 };
 
+export type DisputeStatus = 'open' | 'resolved';
+export type PayoutStatus = 'ready' | 'transferred';
+
+type DeliveryRow = {
+  request_id: string;
+  traveler_id: string;
+  pickup_photo_path: string;
+  pickup_weight_grams: number;
+  picked_up_at: string;
+  delivered_at: string | null;
+  delivery_method: 'code' | 'handover' | null;
+  confirm_by: string | null;
+  settled_at: string | null;
+  settled_by: 'code' | 'requester' | 'auto' | 'admin' | null;
+};
+
+type DisputeRow = {
+  id: string;
+  request_id: string;
+  raised_by: string;
+  reason: string;
+  status: DisputeStatus;
+  resolution: 'released' | 'refunded' | null;
+  resolution_note: string | null;
+  resolved_by: string | null;
+  resolved_at: string | null;
+  created_at: string;
+};
+
+type PayoutRow = {
+  id: string;
+  payment_id: string;
+  request_id: string;
+  traveler_id: string;
+  gross_paise: number;
+  fee_paise: number;
+  net_paise: number;
+  status: PayoutStatus;
+  created_at: string;
+};
+
 export type OfferStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'closed';
 
 type OfferRow = {
@@ -244,6 +285,24 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      deliveries: {
+        Row: DeliveryRow;
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      disputes: {
+        Row: DisputeRow;
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      payouts: {
+        Row: PayoutRow;
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       offers: {
         Row: OfferRow;
         Insert: never;
@@ -297,6 +356,38 @@ export type Database = {
         Args: { p_offer_id: string };
         Returns: OfferRow;
       };
+      mark_picked_up: {
+        Args: { p_request_id: string; p_photo_path: string; p_weight_grams: number };
+        Returns: DeliveryRow;
+      };
+      confirm_delivery_code: {
+        Args: { p_request_id: string; p_code: string };
+        Returns: 'settled' | 'wrong_code' | 'locked';
+      };
+      mark_handed_over: {
+        Args: { p_request_id: string };
+        Returns: DeliveryRow;
+      };
+      issue_handover_code: {
+        Args: { p_request_id: string };
+        Returns: string;
+      };
+      confirm_received: {
+        Args: { p_request_id: string };
+        Returns: undefined;
+      };
+      raise_dispute: {
+        Args: { p_request_id: string; p_reason: string };
+        Returns: DisputeRow;
+      };
+      resolve_dispute_release: {
+        Args: { p_request_id: string; p_note?: string };
+        Returns: DisputeRow;
+      };
+      request_traveler: {
+        Args: { p_request_id: string };
+        Returns: string | null;
+      };
     };
     Enums: {
       request_status: RequestStatus;
@@ -306,6 +397,8 @@ export type Database = {
       trip_status: TripStatus;
       offer_status: OfferStatus;
       payment_status: PaymentStatus;
+      dispute_status: DisputeStatus;
+      payout_status: PayoutStatus;
     };
     CompositeTypes: { [_ in never]: never };
   };
@@ -326,3 +419,6 @@ export type TripInsert = Tables['trips']['Insert'];
 export type AppSetting = Tables['app_settings']['Row'];
 export type Offer = Tables['offers']['Row'];
 export type Payment = Tables['payments']['Row'];
+export type Delivery = Tables['deliveries']['Row'];
+export type Dispute = Tables['disputes']['Row'];
+export type Payout = Tables['payouts']['Row'];

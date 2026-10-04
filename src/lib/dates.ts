@@ -30,3 +30,13 @@ export function formatDate(isoDate: string): string {
   const months = t('common.monthsShort').split(',');
   return `${d} ${months[m - 1]} ${y}`;
 }
+
+/** Timestamp -> "10 Oct, 4:05 pm" in the phone's time zone. */
+export function formatDateTime(isoTimestamp: string): string {
+  const d = new Date(isoTimestamp);
+  const months = t('common.monthsShort').split(',');
+  const hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const h12 = hours % 12 === 0 ? 12 : hours % 12;
+  return `${d.getDate()} ${months[d.getMonth()]}, ${h12}:${minutes} ${hours < 12 ? 'am' : 'pm'}`;
+}

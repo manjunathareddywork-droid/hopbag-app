@@ -7,7 +7,8 @@ type DbError = { code?: string; details?: string | null };
 
 /**
  * Turns a database rule error into a message people can act on. The HB0xx codes
- * are listed at the top of the item_requests, travelers, offers and payments migrations;
+ * are listed at the top of the item_requests, travelers, offers, payments and delivery
+ * migrations;
  * the lower-case ones come from the Edge Functions.
  */
 export function dbErrorMessage(error: unknown, fallback: StringKey): string {
@@ -69,6 +70,12 @@ export function dbErrorMessage(error: unknown, fallback: StringKey): string {
       return t('payment.errors.mismatch');
     case 'HB024':
       return t('payment.errors.cannotRefund');
+    case 'HB025':
+      return t('delivery.noCodeYet');
+    case 'HB026':
+      return t('delivery.codeLocked');
+    case 'HB027':
+      return t('dispute.reasonShort');
     // Edge Function codes (supabase/functions/_shared/http.ts)
     case 'bad_signature':
       return t('payment.errors.badSignature');

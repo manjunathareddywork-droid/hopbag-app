@@ -1,4 +1,11 @@
-import { addDays, formatDate, isoToLocalDate, localDateToIso, todayIst } from '@/lib/dates';
+import {
+  addDays,
+  formatDate,
+  formatDateTime,
+  isoToLocalDate,
+  localDateToIso,
+  todayIst,
+} from '@/lib/dates';
 
 describe('dates', () => {
   it('uses India time for today', () => {
@@ -19,5 +26,11 @@ describe('dates', () => {
 
   it('formats for reading', () => {
     expect(formatDate('2026-10-10')).toBe('10 Oct 2026');
+  });
+
+  it('formats a time in 12-hour style', () => {
+    const local = new Date(2026, 9, 10, 16, 5);
+    expect(formatDateTime(local.toISOString())).toBe('10 Oct, 4:05 pm');
+    expect(formatDateTime(new Date(2026, 9, 10, 0, 30).toISOString())).toBe('10 Oct, 12:30 am');
   });
 });
