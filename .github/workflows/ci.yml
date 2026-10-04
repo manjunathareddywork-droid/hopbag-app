@@ -34,3 +34,13 @@ jobs:
           version: 2.109.0
       - run: supabase db start
       - run: supabase test db
+
+  functions:
+    name: Edge Functions typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno check supabase/functions/*/index.ts
