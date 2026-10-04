@@ -101,6 +101,8 @@ function RootNavigator() {
         <Stack.Screen name="traveler/verify-id" options={{ title: t('verifyId.title') }} />
         <Stack.Screen name="traveler/trips/new" options={{ title: t('trips.newTitle') }} />
         <Stack.Screen name="traveler/trips/[id]" options={{ title: t('trips.detailTitle') }} />
+        <Stack.Screen name="traveler/feed" options={{ title: t('offers.feedTitle') }} />
+        <Stack.Screen name="traveler/requests/[id]" options={{ title: t('offers.requestTitle') }} />
 
         {/* Navigation only: every admin read and review is checked by the database. */}
         <Stack.Protected guard={isAdmin}>

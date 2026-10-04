@@ -1,5 +1,5 @@
 import { Link } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { LoadingView } from '@/components/loading-view';
@@ -7,10 +7,12 @@ import { Screen } from '@/components/screen';
 import { Text } from '@/components/text';
 import { VerifiedBadge } from '@/components/verified-badge';
 import { useCities } from '@/features/places/hooks';
+import { useMyOffers, useRequestsByIds } from '@/features/offers/hooks';
 import { useMyProfile } from '@/features/profile/hooks';
 import { useMyTrips, useMyVerification } from '@/features/travelers/hooks';
 import { TripCard } from '@/features/travelers/trip-card';
-import { t } from '@/i18n';
+import { t, type StringKey } from '@/i18n';
+import { formatPaise } from '@/lib/money';
 import { colors, radius, spacing } from '@/theme';
 
 export default function TravelerHomeScreen() {
@@ -18,6 +20,8 @@ export default function TravelerHomeScreen() {
   const verification = useMyVerification();
   const trips = useMyTrips();
   const cities = useCities();
+  const myOffers = useMyOffers();
+  const offeredRequests = useRequestsByIds((myOffers.data ?? []).map((o) => o.request_id));
 
   if (verification.isPending || !trips.data || !cities.data) {
     const failed = verification.isError || trips.isError || cities.isError;
@@ -74,6 +78,43 @@ export default function TravelerHomeScreen() {
         </Link>
       </View>
 
+      {verified ? (
+        <Link href="/traveler/feed" asChild>
+          <Button title={t('offers.findButton')} />
+        </Link>
+      ) : null}
+
+      {verified ? (
+        <View style={styles.list}>
+          <Text variant="heading">{t('offers.myOffers')}</Text>
+          {(myOffers.data ?? []).length === 0 ? (
+            <Text variant="body" muted>
+              {t('offers.noMyOffers')}
+            </Text>
+          ) : (
+            (myOffers.data ?? []).map((o) => (
+              <Link
+                key={o.id}
+                href={{
+                  pathname: '/traveler/requests/[id]',
+                  params: { id: o.request_id, tripId: o.trip_id },
+                }}
+                asChild
+              >
+                <Pressable accessibilityRole="button" style={styles.offer}>
+                  <Text variant="label" style={styles.offerName} numberOfLines={1}>
+                    {offeredRequests.data?.find((r) => r.id === o.request_id)?.item_name ?? ''}
+                  </Text>
+                  <Text variant="caption" muted>
+                    {`${formatPaise(o.fare_paise)} · ${t(`offers.status.${o.status}` as StringKey)}`}
+                  </Text>
+                </Pressable>
+              </Link>
+            ))
+          )}
+        </View>
+      ) : null}
+
       <View style={styles.list}>
         <Text variant="heading">{t('traveler.myTrips')}</Text>
         {trips.data.length === 0 ? (
@@ -104,5 +145,16 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: spacing.md,
+  },
+  offer: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  offerName: {
+    flexShrink: 1,
   },
 });

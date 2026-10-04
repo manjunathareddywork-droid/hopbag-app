@@ -8,6 +8,9 @@ import { LoadingView } from '@/components/loading-view';
 import { Screen } from '@/components/screen';
 import { StatusChip } from '@/components/status-chip';
 import { Text } from '@/components/text';
+import { fareBand } from '@/features/offers/fare';
+import { useAcceptOffer, useDeclineOffer, useOffersForRequest } from '@/features/offers/hooks';
+import { OfferCard } from '@/features/offers/offer-card';
 import { useCities, useStates } from '@/features/places/hooks';
 import { cityLabel } from '@/features/places/labels';
 import { dbErrorMessage } from '@/lib/db-errors';
@@ -19,12 +22,16 @@ import {
 } from '@/features/requests/hooks';
 import { categoryText } from '@/features/requests/labels';
 import { formatGrams } from '@/features/requests/weight';
+import { useProfilesByIds } from '@/features/profile/hooks';
+import { useSettings } from '@/features/travelers/hooks';
 import { t } from '@/i18n';
+import type { Offer } from '@/lib/database.types';
 import { formatDate } from '@/lib/dates';
 import { formatPaise } from '@/lib/money';
 import { colors, radius, spacing } from '@/theme';
 
-const CANCELLABLE = ['draft', 'open', 'offered'];
+// Before payment the requester can still cancel (Phase 5 adds payment).
+const CANCELLABLE = ['draft', 'open', 'offered', 'accepted'];
 
 export default function RequestDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -35,6 +42,11 @@ export default function RequestDetailScreen() {
   const categories = useCategories();
   const photoUrl = useRequestPhotoUrl(request.data?.photo_path);
   const cancel = useCancelRequest();
+  const offers = useOffersForRequest(id);
+  const travelers = useProfilesByIds((offers.data ?? []).map((o) => o.traveler_id));
+  const settings = useSettings();
+  const accept = useAcceptOffer();
+  const decline = useDeclineOffer();
 
   if (request.data === null) {
     return <LoadingView error={t('errors.notFound')} />;
@@ -59,6 +71,35 @@ export default function RequestDetailScreen() {
       states.data,
     );
   const category = categories.data?.find((c) => c.id === r.category_id);
+
+  const visibleOffers = (offers.data ?? [])
+    .filter((o) => o.status === 'pending' || o.status === 'accepted')
+    .sort((a, b) => Number(b.status === 'accepted') - Number(a.status === 'accepted'));
+  const band = settings.data ? fareBand(r.weight_grams, settings.data) : null;
+  const takingOffers = r.status === 'open' || r.status === 'offered';
+  const offerError = accept.error ?? decline.error;
+  const travelerOf = (o: Offer) => travelers.data?.find((p) => p.id === o.traveler_id);
+
+  function confirmAccept(o: Offer) {
+    Alert.alert(
+      t('offers.acceptConfirm', {
+        name: travelerOf(o)?.full_name ?? '',
+        amount: formatPaise(o.fare_paise),
+      }),
+      undefined,
+      [
+        { text: t('offers.back'), style: 'cancel' },
+        { text: t('offers.acceptYes'), onPress: () => accept.mutate(o.id) },
+      ],
+    );
+  }
+
+  function confirmDecline(o: Offer) {
+    Alert.alert(t('offers.declineConfirm'), undefined, [
+      { text: t('offers.back'), style: 'cancel' },
+      { text: t('offers.declineYes'), style: 'destructive', onPress: () => decline.mutate(o.id) },
+    ]);
+  }
 
   function confirmCancel() {
     Alert.alert(t('requests.cancelConfirm'), undefined, [
@@ -91,6 +132,41 @@ export default function RequestDetailScreen() {
         <DetailRow label={t('requests.fields.deadline')} value={formatDate(r.deadline)} />
         <DetailRow label={t('requests.fields.budget')} value={formatPaise(r.budget_paise)} />
         {r.details ? <DetailRow label={t('requests.fields.details')} value={r.details} /> : null}
+      </View>
+
+      <View style={styles.offers}>
+        <Text variant="heading">
+          {r.status === 'accepted' ? t('offers.chosen') : t('offers.offersTitle')}
+        </Text>
+        {takingOffers && band ? (
+          <Text variant="caption" muted>
+            {t('offers.bandForRequest', {
+              min: formatPaise(band.minPaise),
+              max: formatPaise(band.maxPaise),
+            })}
+          </Text>
+        ) : null}
+        {visibleOffers.length === 0 && takingOffers ? (
+          <Text variant="body" muted>
+            {t('offers.noOffersYet')}
+          </Text>
+        ) : null}
+        {offerError ? (
+          <Text variant="body" style={styles.error}>
+            {dbErrorMessage(offerError, 'offers.actionFailed')}
+          </Text>
+        ) : null}
+        {visibleOffers.map((o) => (
+          <OfferCard
+            key={o.id}
+            offer={o}
+            traveler={travelerOf(o)}
+            canRespond={r.status === 'offered'}
+            busy={accept.isPending || decline.isPending}
+            onAccept={() => confirmAccept(o)}
+            onDecline={() => confirmDecline(o)}
+          />
+        ))}
       </View>
 
       {CANCELLABLE.includes(r.status) ? (
@@ -129,6 +205,9 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   actions: {
+    gap: spacing.md,
+  },
+  offers: {
     gap: spacing.md,
   },
   error: {
