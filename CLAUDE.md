@@ -65,6 +65,11 @@ Read docs/PRODUCT.md for rules and docs/PHASES.md for the build plan. Work on ON
 - Chat: public.messages, readable/writable only by the requester and chosen traveler (admins read). Phone numbers blocked in offers and in chat until paid (contains_phone_number / src/features/chat/phone.ts must match).
 - Notifications: triggers insert into public.notifications (kind + params, no text). Text lives in src/i18n/en.ts (notifications.kinds) and supabase/functions/_shared/notification-text.ts (push); a test checks both cover every kind. Push is sent by send-notifications (pg_cron + Vault secrets, see docs/NOTIFICATIONS.md) and needs a real build, not Expo Go.
 - Ratings: rate_counterpart after settled, once per person per request; rating_summary for averages.
+- Safety: user_blocks (two-way: feed, offers, chat), user_reports, account_suspensions (admin, via review_report/set_suspension). Helpers that answer about other people must only answer about the caller (see is_blocked_between).
+- Rate limits: public.rate_limits via hit_rate_limit (Edge Functions, service role) and enforce_rate_limit (DB triggers, raises HB032).
+- Monitoring is our own: src/lib/monitoring.ts -> app_errors / app_events (admin-read). Never put personal data in event properties. No Sentry (user decision).
+- Admin dashboard: admin_dashboard(), admin_funnel(), admin_error_groups() SQL functions; screens under src/app/admin.
+- Builds: eas.json (development / preview / production), see docs/RELEASE.md. Security review and open items: docs/SECURITY_REVIEW.md.
 - Admin screens (src/app/admin) sit behind Stack.Protected on `is_admin()`; review goes through review_verification / review_trip_ticket functions.
 - Blocked items: patterns in public.blocked_terms are matched as whole words in both Postgres (`\m...\M`) and JS (`\b...\b`); src/__tests__/blocked-terms.test.ts runs the seeded list through the app matcher. Avoid false positives (e.g. "gold" alone blocks Nescafe Gold).
 - Request status changes only through DB functions (cancel_request now; later phases add more). The status trigger enforces the PRODUCT.md lifecycle for everyone.
