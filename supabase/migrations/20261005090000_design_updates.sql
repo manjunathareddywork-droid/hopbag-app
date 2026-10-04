@@ -30,7 +30,7 @@ revoke execute on function public.platform_fee(integer) from public, anon;
 grant execute on function public.platform_fee(integer) to authenticated;
 
 alter table public.payments add column fee_paise integer not null default 0 check (fee_paise >= 0);
-alter table public.payments drop constraint payments_amount_paise_check;
+alter table public.payments drop constraint payments_check;
 alter table public.payments
   add constraint payments_amount_check check (amount_paise = item_price_paise + fare_paise + fee_paise);
 
