@@ -42,8 +42,9 @@ create function pg_temp.req(
 ) returns text language sql as $$
   select format(
     'insert into public.item_requests
-       (category_id, item_name, details, weight_grams, from_city_id, to_city_id, deadline, budget_paise)
-     select %L, %L, %L, %s, ids.%I, ids.%I, public.today_ist() + %s, %s from ids',
+       (category_id, item_name, details, weight_grams, from_city_id, to_city_id, deadline,
+        budget_paise, item_price_paise)
+     select %L, %L, %L, %s, ids.%I, ids.%I, public.today_ist() + %s, %s, 40000 from ids',
     category, item, details, grams, from_city, to_city, deadline_days, budget
   );
 $$;

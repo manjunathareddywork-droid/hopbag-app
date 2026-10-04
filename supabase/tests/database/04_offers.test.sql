@@ -61,9 +61,9 @@ create temporary table r (name text primary key, id uuid);
 with new_requests as (
   insert into public.item_requests
     (requester_id, category_id, item_name, weight_grams, from_city_id, to_city_id, deadline,
-     budget_paise)
+     budget_paise, item_price_paise)
   select v.requester::uuid, v.category, v.item, 1000, v.from_city, c.hyd,
-         public.today_ist() + 7, 30000
+         public.today_ist() + 7, 30000, 40000
   from c cross join lateral (values
     ('rA', '11111111-1111-1111-1111-111111111111', 'coffee_tea', 'Filter coffee', c.blr),
     ('rB', '11111111-1111-1111-1111-111111111111', 'books', 'Kannada novels', c.blr),
