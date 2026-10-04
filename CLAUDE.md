@@ -41,4 +41,9 @@ Read docs/PRODUCT.md for rules and docs/PHASES.md for the build plan. Work on ON
 - src/theme: colours, fonts, spacing. src/i18n/en.ts: every user-facing string.
 - src/lib: env, Supabase client, TanStack Query client.
 - supabase/migrations, supabase/tests/database (00_rls_guard fails CI if any public table lacks RLS or a policy).
-- Expo SDK 57. Testing Library v14: `render` is async, always `await render(...)`.
+- src/features/<area>: api.ts (Supabase calls), hooks.ts (TanStack Query), schema.ts (zod), components.
+- src/lib/database.types.ts is hand-written until a project is linked; then regenerate with `supabase gen types typescript --linked > src/lib/database.types.ts`.
+- Auth routing: src/app/_layout.tsx uses Stack.Protected (signed out / no profile / app). Navigation only; RLS is the real access control.
+- Expo SDK 57. Testing Library v14: `render` and `fireEvent` are async, always await them. Use `renderWithQuery` from src/test-utils.tsx.
+- Typed routes: if tsc says a new route path is not assignable, run `npx expo start` once to regenerate .expo/types.
+- Test phone numbers (local config.toml, and add the same in the hosted dashboard): 919000000001 / 919000000002, OTP 123456.
