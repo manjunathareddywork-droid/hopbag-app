@@ -1,3 +1,4 @@
+import { File } from 'expo-file-system';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 
 import type { Profile, State } from '@/lib/database.types';
@@ -30,7 +31,10 @@ export async function uploadAvatar(userId: string, localUri: string): Promise<st
     .resize({ width: AVATAR_SIZE })
     .renderAsync();
   const image = await rendered.saveAsync({ compress: 0.7, format: SaveFormat.JPEG });
-  const body = await fetch(image.uri).then((res) => res.arrayBuffer());
+  // Read with expo-file-system: fetch() on a local file:// URI can "succeed" with an
+  // error text body ("File not found"), which then gets uploaded as the photo.
+  const body = await new File(image.uri).arrayBuffer();
+  if (!isJpeg(body)) throw new Error('Resized photo is not a valid JPEG');
 
   const path = `${userId}/avatar.jpg`;
   const { error } = await supabase.storage
@@ -38,6 +42,12 @@ export async function uploadAvatar(userId: string, localUri: string): Promise<st
     .upload(path, body, { contentType: 'image/jpeg', upsert: true });
   if (error) throw error;
   return path;
+}
+
+/** JPEG files start with FF D8 FF. */
+export function isJpeg(data: ArrayBuffer): boolean {
+  const head = new Uint8Array(data, 0, Math.min(3, data.byteLength));
+  return head.length === 3 && head[0] === 0xff && head[1] === 0xd8 && head[2] === 0xff;
 }
 
 export async function getAvatarUrl(path: string): Promise<string> {
