@@ -194,7 +194,8 @@ select results_eq(
 
 set local request.jwt.claims to '{"sub": "33333333-3333-3333-3333-333333333333", "role": "authenticated"}';
 select is(
-  (select kind from public.notifications where request_id = (select id from k where name = 'rA')),
+  (select kind from public.notifications where request_id = (select id from k where name = 'rA')
+     and kind <> 'route_request'),
   'offer_not_chosen', 'the other traveler is told they were not chosen');
 
 -------------------------------------------------------------------------------
