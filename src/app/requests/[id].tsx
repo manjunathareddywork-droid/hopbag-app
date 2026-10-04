@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams } from 'expo-router';
 import { Alert, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -13,6 +13,8 @@ import { useAcceptOffer, useDeclineOffer, useOffersForRequest } from '@/features
 import { OfferCard } from '@/features/offers/offer-card';
 import { RequesterDeliveryCard } from '@/features/delivery/requester-delivery-card';
 import { PaymentCard } from '@/features/payments/payment-card';
+import { useRatingSummaries } from '@/features/ratings/hooks';
+import { RateCard } from '@/features/ratings/rate-card';
 import { useCities, useStates } from '@/features/places/hooks';
 import { cityLabel } from '@/features/places/labels';
 import { dbErrorMessage } from '@/lib/db-errors';
@@ -46,6 +48,7 @@ export default function RequestDetailScreen() {
   const cancel = useCancelRequest();
   const offers = useOffersForRequest(id);
   const travelers = useProfilesByIds((offers.data ?? []).map((o) => o.traveler_id));
+  const travelerRatings = useRatingSummaries((offers.data ?? []).map((o) => o.traveler_id));
   const settings = useSettings();
   const accept = useAcceptOffer();
   const decline = useDeclineOffer();
@@ -142,6 +145,16 @@ export default function RequestDetailScreen() {
         {r.details ? <DetailRow label={t('requests.fields.details')} value={r.details} /> : null}
       </View>
 
+      {r.accepted_offer_id && r.status !== 'cancelled' ? (
+        <Link href={{ pathname: '/chat/[requestId]', params: { requestId: r.id } }} asChild>
+          <Button title={t('chat.openWithTraveler')} variant="secondary" />
+        </Link>
+      ) : null}
+
+      {r.status === 'settled' ? (
+        <RateCard requestId={r.id} title={t('ratings.rateTraveler')} />
+      ) : null}
+
       <RequesterDeliveryCard request={r} />
 
       <PaymentCard
@@ -176,6 +189,7 @@ export default function RequestDetailScreen() {
             key={o.id}
             offer={o}
             traveler={travelerOf(o)}
+            rating={travelerRatings.data?.find((s) => s.user_id === o.traveler_id)}
             canRespond={r.status === 'offered'}
             busy={accept.isPending || decline.isPending}
             onAccept={() => confirmAccept(o)}

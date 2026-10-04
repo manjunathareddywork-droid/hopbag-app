@@ -6,6 +6,7 @@ import { Button } from '@/components/button';
 import { Screen } from '@/components/screen';
 import { Text } from '@/components/text';
 import { useIsAdmin } from '@/features/admin/hooks';
+import { useUnreadCount } from '@/features/notifications/hooks';
 import { useMyProfile } from '@/features/profile/hooks';
 import { t } from '@/i18n';
 import { spacing } from '@/theme';
@@ -15,6 +16,7 @@ const logo = require('@/assets/brand/logo/hopbag-logo-stacked-onlight.svg');
 export default function HomeScreen() {
   const { data: profile } = useMyProfile();
   const isAdmin = useIsAdmin().data === true;
+  const unread = useUnreadCount();
   const firstName = profile?.full_name.split(' ')[0] ?? '';
 
   return (
@@ -34,6 +36,16 @@ export default function HomeScreen() {
       <View style={styles.actions}>
         <Link href="/requests/new" asChild>
           <Button title={t('home.newRequest')} />
+        </Link>
+        <Link href="/updates" asChild>
+          <Button
+            title={
+              unread > 0
+                ? t('notifications.openWithCount', { count: unread })
+                : t('notifications.open')
+            }
+            variant="secondary"
+          />
         </Link>
         <Link href="/requests" asChild>
           <Button title={t('home.myRequests')} variant="secondary" />

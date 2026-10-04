@@ -14,6 +14,8 @@ import { useSession } from '@/features/auth/session';
 import { useCities, useStates } from '@/features/places/hooks';
 import { cityLabel } from '@/features/places/labels';
 import { useAvatarUrl, useMyProfile } from '@/features/profile/hooks';
+import { RatingBadge } from '@/features/ratings/rating-badge';
+import { useRatingSummaries } from '@/features/ratings/hooks';
 import { t } from '@/i18n';
 import { colors, radius, spacing } from '@/theme';
 
@@ -23,6 +25,7 @@ export default function AccountScreen() {
   const { data: states } = useStates();
   const { data: cities } = useCities();
   const isAdmin = useIsAdmin().data === true;
+  const myRating = useRatingSummaries(session?.user.id ? [session.user.id] : []);
   const { data: avatarUrl } = useAvatarUrl(profile?.avatar_path);
 
   if (!profile) return null;
@@ -41,6 +44,7 @@ export default function AccountScreen() {
       <View style={styles.header}>
         <Avatar uri={avatarUrl} name={profile.full_name} size={104} />
         <Text variant="title">{profile.full_name}</Text>
+        <RatingBadge summary={myRating.data?.[0]} />
         {profile.traveler_verified_at ? <VerifiedBadge /> : null}
       </View>
 

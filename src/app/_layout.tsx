@@ -4,15 +4,18 @@ import { DMSans_700Bold } from '@expo-google-fonts/dm-sans/700Bold';
 import { Outfit_600SemiBold } from '@expo-google-fonts/outfit/600SemiBold';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { LoadingView } from '@/components/loading-view';
 import { SessionProvider, useSession } from '@/features/auth/session';
+import { notificationRoute } from '@/features/notifications/text';
 import { useMyProfile } from '@/features/profile/hooks';
 import { t } from '@/i18n';
+import type { ItemRequest } from '@/lib/database.types';
+import { onPushTap, registerForPush } from '@/lib/push';
 import { queryClient } from '@/lib/query-client';
 import { colors, fonts } from '@/theme';
 
@@ -51,6 +54,30 @@ function RootNavigator() {
   useEffect(() => {
     if (!isLoading) SplashScreen.hideAsync();
   }, [isLoading]);
+
+  const ready = !!session && !!profile.data && profile.data.home_city_id !== null;
+  const userId = session?.user.id;
+  const router = useRouter();
+
+  // Push: save this phone's token once signed in (no-op in Expo Go).
+  useEffect(() => {
+    if (ready) registerForPush().catch(() => undefined);
+  }, [ready, userId]);
+
+  // Tapping a push opens the screen it is about.
+  useEffect(() => {
+    if (!ready) return;
+    return onPushTap((tap) => {
+      const mine =
+        queryClient.getQueryData<ItemRequest[]>(['requests', 'mine', userId ?? '']) ?? [];
+      router.push(
+        notificationRoute(
+          { kind: tap.kind, request_id: tap.requestId, trip_id: tap.tripId },
+          mine.map((r) => r.id),
+        ),
+      );
+    });
+  }, [ready, router, userId]);
 
   if (isLoading) return null;
 
@@ -106,6 +133,8 @@ function RootNavigator() {
           options={{ title: t('delivery.codeTitle') }}
         />
         <Stack.Screen name="dispute/[requestId]" options={{ title: t('dispute.title') }} />
+        <Stack.Screen name="chat/[requestId]" options={{ title: t('chat.title') }} />
+        <Stack.Screen name="updates" options={{ title: t('notifications.title') }} />
         <Stack.Screen name="traveler/requests/[id]" options={{ title: t('offers.requestTitle') }} />
 
         {/* Admin screens check admin rights themselves (AdminOnly); the database enforces them. */}

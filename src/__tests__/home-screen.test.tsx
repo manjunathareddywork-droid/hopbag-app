@@ -12,6 +12,10 @@ jest.mock('@/features/profile/hooks', () => ({
 jest.mock('@/features/admin/hooks', () => ({
   useIsAdmin: () => ({ data: mockIsAdmin.current }),
 }));
+const mockUnread = { current: 0 };
+jest.mock('@/features/notifications/hooks', () => ({
+  useUnreadCount: () => mockUnread.current,
+}));
 
 describe('HomeScreen', () => {
   it('shows the main actions to every signed-in user', async () => {
@@ -30,5 +34,11 @@ describe('HomeScreen', () => {
     mockIsAdmin.current = true;
     await renderWithQuery(<HomeScreen />);
     expect(screen.getByText(en.admin.open)).toBeTruthy();
+  });
+
+  it('shows how many updates are unread', async () => {
+    mockUnread.current = 3;
+    await renderWithQuery(<HomeScreen />);
+    expect(screen.getByText('Updates (3)')).toBeTruthy();
   });
 });

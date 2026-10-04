@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -17,6 +17,7 @@ import { cityLabel } from '@/features/places/labels';
 import { useCategories, useRequest, useRequestPhotoUrl } from '@/features/requests/hooks';
 import { categoryText } from '@/features/requests/labels';
 import { formatGrams } from '@/features/requests/weight';
+import { RateCard } from '@/features/ratings/rate-card';
 import { useSettings } from '@/features/travelers/hooks';
 import { t, type StringKey } from '@/i18n';
 import { dbErrorMessage } from '@/lib/db-errors';
@@ -97,7 +98,15 @@ export default function TravelerRequestScreen() {
       </View>
 
       {mine?.status === 'accepted' && mine.id === r.accepted_offer_id ? (
-        <TravelerDeliveryCard request={r} />
+        <>
+          <Link href={{ pathname: '/chat/[requestId]', params: { requestId: r.id } }} asChild>
+            <Button title={t('chat.openWithRequester')} variant="secondary" />
+          </Link>
+          {r.status === 'settled' ? (
+            <RateCard requestId={r.id} title={t('ratings.rateRequester')} />
+          ) : null}
+          <TravelerDeliveryCard request={r} />
+        </>
       ) : null}
 
       {mine && mine.status !== 'withdrawn' ? (
