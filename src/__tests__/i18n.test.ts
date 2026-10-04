@@ -4,7 +4,7 @@ import { en } from '@/i18n/en';
 describe('t', () => {
   it('returns the English string for a key', () => {
     expect(t('common.appName')).toBe('Hopbag');
-    expect(t('home.serverOk')).toBe(en.home.serverOk);
+    expect(t('home.tagline')).toBe(en.home.tagline);
   });
 });
 

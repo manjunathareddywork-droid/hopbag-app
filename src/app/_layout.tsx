@@ -9,8 +9,12 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
+import { LoadingView } from '@/components/loading-view';
+import { SessionProvider, useSession } from '@/features/auth/session';
+import { useMyProfile } from '@/features/profile/hooks';
+import { t } from '@/i18n';
 import { queryClient } from '@/lib/query-client';
-import { colors } from '@/theme';
+import { colors, fonts } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,24 +25,72 @@ export default function RootLayout() {
     DMSans_700Bold,
     Outfit_600SemiBold,
   });
-  const ready = fontsLoaded || fontError !== null;
 
-  useEffect(() => {
-    if (ready) SplashScreen.hideAsync();
-  }, [ready]);
-
-  // Keep the branded splash up until fonts load; fall back to system fonts on error.
-  if (!ready) return null;
+  // Fall back to system fonts if loading fails rather than blocking the app.
+  if (!fontsLoaded && !fontError) return null;
 
   return (
     <QueryClientProvider client={queryClient}>
-      <StatusBar style="dark" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: colors.background },
-        }}
-      />
+      <SessionProvider>
+        <StatusBar style="dark" />
+        <RootNavigator />
+      </SessionProvider>
     </QueryClientProvider>
+  );
+}
+
+/**
+ * Which screens exist depends on auth state (Expo Router protected routes):
+ * signed out -> sign-in/verify; signed in without profile -> onboarding; else the app.
+ * This is navigation only; access control is enforced by RLS in the database.
+ */
+function RootNavigator() {
+  const { session, isLoading } = useSession();
+  const profile = useMyProfile();
+
+  useEffect(() => {
+    if (!isLoading) SplashScreen.hideAsync();
+  }, [isLoading]);
+
+  if (isLoading) return null;
+
+  const signedIn = !!session;
+  if (signedIn && profile.isPending) return <LoadingView />;
+  if (signedIn && profile.isError) {
+    return (
+      <LoadingView
+        error={t('common.networkError')}
+        retryLabel={t('common.retry')}
+        onRetry={() => profile.refetch()}
+      />
+    );
+  }
+  const hasProfile = !!profile.data;
+
+  return (
+    <Stack
+      screenOptions={{
+        headerShadowVisible: false,
+        headerStyle: { backgroundColor: colors.background },
+        headerTintColor: colors.text,
+        headerTitleStyle: { fontFamily: fonts.bold },
+        contentStyle: { backgroundColor: colors.background },
+      }}
+    >
+      <Stack.Protected guard={!signedIn}>
+        <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+        <Stack.Screen name="verify" options={{ title: '' }} />
+      </Stack.Protected>
+
+      <Stack.Protected guard={signedIn && !hasProfile}>
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+      </Stack.Protected>
+
+      <Stack.Protected guard={signedIn && hasProfile}>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="account" options={{ title: t('account.title') }} />
+        <Stack.Screen name="edit-profile" options={{ title: t('editProfile.title') }} />
+      </Stack.Protected>
+    </Stack>
   );
 }
