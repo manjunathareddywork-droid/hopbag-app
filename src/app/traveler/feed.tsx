@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,8 +35,11 @@ export default function FeedScreen() {
     [profile, trips.data, today],
   );
 
-  const [chosenTripId, setChosenTripId] = useState<string>();
-  const tripId = chosenTripId ?? usableTrips[0]?.id;
+  const { tripId: tripFromLink } = useLocalSearchParams<{ tripId?: string }>();
+  const [chosenTripId, setChosenTripId] = useState<string | undefined>(tripFromLink);
+  const tripId = usableTrips.some((tr) => tr.id === chosenTripId)
+    ? chosenTripId
+    : usableTrips[0]?.id;
   const [exactOnly, setExactOnly] = useState(false);
   const [category, setCategory] = useState<string | null>(null);
   const feed = useFeed(tripId);

@@ -91,9 +91,15 @@ export default function TravelerHomeScreen() {
       ) : null}
 
       {verified ? (
-        <Link href="/traveler/feed" asChild>
-          <Button title={t('offers.findButton')} />
-        </Link>
+        <View style={styles.card}>
+          <Text variant="heading">{t('offers.findButton')}</Text>
+          <Text variant="body" muted>
+            {t('offers.howItWorks')}
+          </Text>
+          <Link href="/traveler/feed" asChild>
+            <Button title={t('offers.findButton')} />
+          </Link>
+        </View>
       ) : null}
 
       {verified ? (

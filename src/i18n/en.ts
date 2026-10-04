@@ -333,6 +333,9 @@ export const en = {
   offers: {
     feedTitle: 'Find items to carry',
     findButton: 'Find items to carry',
+    findOnTrip: 'Find items to carry on this trip',
+    howItWorks:
+      'See requests on your route and send an offer with your fee. The requester then accepts the offer they like.',
     chooseTrip: 'Your trip',
     noApprovedTrips:
       'To see requests you need a verified ID and an approved ticket for an upcoming trip.',

@@ -25,11 +25,15 @@ export async function fetchBlockedTerms(): Promise<BlockedTerm[]> {
   return data;
 }
 
-export async function fetchMyRequests(): Promise<ItemRequest[]> {
-  // RLS returns only the signed-in user's requests.
+/**
+ * Requests this user posted. Filter by requester: RLS also lets verified
+ * travelers read other people's open requests (for the route feed).
+ */
+export async function fetchMyRequests(userId: string): Promise<ItemRequest[]> {
   const { data, error } = await supabase
     .from('item_requests')
     .select('*')
+    .eq('requester_id', userId)
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data;

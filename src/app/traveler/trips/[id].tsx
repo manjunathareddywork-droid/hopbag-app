@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 
@@ -12,12 +12,13 @@ import { TextField } from '@/components/text-field';
 import { useCities, useStates } from '@/features/places/hooks';
 import { cityLabel } from '@/features/places/labels';
 import { formatGrams } from '@/features/requests/weight';
+import { useMyProfile } from '@/features/profile/hooks';
 import { useCancelTrip, useResubmitTicket, useTrip } from '@/features/travelers/hooks';
 import { normalizePnr, pnrSchema } from '@/features/travelers/schema';
 import { t, type StringKey } from '@/i18n';
 import type { Trip } from '@/lib/database.types';
 import { dbErrorMessage } from '@/lib/db-errors';
-import { formatDate } from '@/lib/dates';
+import { formatDate, todayIst } from '@/lib/dates';
 import { colors, radius, spacing } from '@/theme';
 
 export default function TripDetailScreen() {
@@ -26,6 +27,7 @@ export default function TripDetailScreen() {
   const cities = useCities();
   const states = useStates();
   const cancel = useCancelTrip();
+  const { data: profile } = useMyProfile();
 
   if (trip.data === null) return <LoadingView error={t('errors.notFound')} />;
   if (!trip.data || !cities.data) {
@@ -83,6 +85,18 @@ export default function TripDetailScreen() {
           }
         />
       </View>
+
+      {tr.status === 'active' &&
+      tr.ticket_status === 'approved' &&
+      tr.travel_date >= todayIst() &&
+      profile?.traveler_verified_at ? (
+        <View style={[styles.card, styles.inner]}>
+          <Text variant="body">{t('offers.howItWorks')}</Text>
+          <Link href={{ pathname: '/traveler/feed', params: { tripId: tr.id } }} asChild>
+            <Button title={t('offers.findOnTrip')} />
+          </Link>
+        </View>
+      ) : null}
 
       {tr.status === 'active' && tr.ticket_status === 'rejected' ? (
         <ResubmitTicket trip={tr} />

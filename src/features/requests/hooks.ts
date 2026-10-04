@@ -18,7 +18,7 @@ const HOUR = 60 * 60 * 1000;
 export const requestKeys = {
   categories: ['categories'] as const,
   blockedTerms: ['blocked-terms'] as const,
-  mine: ['requests', 'mine'] as const,
+  mine: (userId: string) => ['requests', 'mine', userId] as const,
   detail: (id: string) => ['requests', 'detail', id] as const,
   photo: (path: string) => ['requests', 'photo', path] as const,
 };
@@ -37,7 +37,12 @@ export function useBlockedTerms() {
 }
 
 export function useMyRequests() {
-  return useQuery({ queryKey: requestKeys.mine, queryFn: fetchMyRequests });
+  const userId = useSession().session?.user.id ?? '';
+  return useQuery({
+    queryKey: requestKeys.mine(userId),
+    queryFn: () => fetchMyRequests(userId),
+    enabled: !!userId,
+  });
 }
 
 export function useRequest(id: string) {
@@ -60,7 +65,7 @@ export function useCreateRequest() {
     mutationFn: (values: RequestFormValues) => createRequest(session!.user.id, values),
     onSuccess: (created) => {
       queryClient.setQueryData(requestKeys.detail(created.id), created);
-      queryClient.invalidateQueries({ queryKey: requestKeys.mine });
+      queryClient.invalidateQueries({ queryKey: ['requests', 'mine'] });
     },
   });
 }
@@ -71,7 +76,7 @@ export function useCancelRequest() {
     mutationFn: cancelRequest,
     onSuccess: (updated) => {
       queryClient.setQueryData(requestKeys.detail(updated.id), updated);
-      queryClient.invalidateQueries({ queryKey: requestKeys.mine });
+      queryClient.invalidateQueries({ queryKey: ['requests', 'mine'] });
     },
   });
 }
