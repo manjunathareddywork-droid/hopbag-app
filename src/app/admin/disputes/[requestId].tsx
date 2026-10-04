@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { AdminOnly } from '@/features/admin/admin-only';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
@@ -27,7 +28,7 @@ import { formatDateTime } from '@/lib/dates';
 import { formatPaise } from '@/lib/money';
 import { colors, radius, spacing } from '@/theme';
 
-export default function AdminDisputeScreen() {
+function AdminDisputeScreen() {
   const { requestId } = useLocalSearchParams<{ requestId: string }>();
   const router = useRouter();
   const request = useRequest(requestId);
@@ -161,3 +162,11 @@ const styles = StyleSheet.create({
     color: colors.danger,
   },
 });
+
+export default function AdminDisputeScreenRoute() {
+  return (
+    <AdminOnly>
+      <AdminDisputeScreen />
+    </AdminOnly>
+  );
+}

@@ -10,7 +10,6 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { LoadingView } from '@/components/loading-view';
-import { useIsAdmin } from '@/features/admin/hooks';
 import { SessionProvider, useSession } from '@/features/auth/session';
 import { useMyProfile } from '@/features/profile/hooks';
 import { t } from '@/i18n';
@@ -48,7 +47,6 @@ export default function RootLayout() {
 function RootNavigator() {
   const { session, isLoading } = useSession();
   const profile = useMyProfile();
-  const isAdmin = useIsAdmin().data === true;
 
   useEffect(() => {
     if (!isLoading) SplashScreen.hideAsync();
@@ -110,16 +108,14 @@ function RootNavigator() {
         <Stack.Screen name="dispute/[requestId]" options={{ title: t('dispute.title') }} />
         <Stack.Screen name="traveler/requests/[id]" options={{ title: t('offers.requestTitle') }} />
 
-        {/* Navigation only: every admin read and review is checked by the database. */}
-        <Stack.Protected guard={isAdmin}>
-          <Stack.Screen name="admin/index" options={{ title: t('admin.title') }} />
-          <Stack.Screen name="admin/verifications/[id]" options={{ title: t('admin.title') }} />
-          <Stack.Screen name="admin/trips/[id]" options={{ title: t('admin.title') }} />
-          <Stack.Screen
-            name="admin/disputes/[requestId]"
-            options={{ title: t('adminDisputes.title') }}
-          />
-        </Stack.Protected>
+        {/* Admin screens check admin rights themselves (AdminOnly); the database enforces them. */}
+        <Stack.Screen name="admin/index" options={{ title: t('admin.title') }} />
+        <Stack.Screen name="admin/verifications/[id]" options={{ title: t('admin.title') }} />
+        <Stack.Screen name="admin/trips/[id]" options={{ title: t('admin.title') }} />
+        <Stack.Screen
+          name="admin/disputes/[requestId]"
+          options={{ title: t('adminDisputes.title') }}
+        />
       </Stack.Protected>
     </Stack>
   );

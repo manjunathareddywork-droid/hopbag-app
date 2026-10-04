@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { AdminOnly } from '@/features/admin/admin-only';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
@@ -16,7 +17,7 @@ import { dbErrorMessage } from '@/lib/db-errors';
 import { formatDate } from '@/lib/dates';
 import { colors, radius } from '@/theme';
 
-export default function ReviewVerificationScreen() {
+function ReviewVerificationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { session } = useSession();
@@ -99,3 +100,11 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
 });
+
+export default function ReviewVerificationScreenRoute() {
+  return (
+    <AdminOnly>
+      <ReviewVerificationScreen />
+    </AdminOnly>
+  );
+}

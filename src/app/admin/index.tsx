@@ -1,4 +1,5 @@
 import { Link } from 'expo-router';
+import { AdminOnly } from '@/features/admin/admin-only';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { LoadingView } from '@/components/loading-view';
@@ -12,7 +13,7 @@ import { t, type StringKey } from '@/i18n';
 import { formatDate } from '@/lib/dates';
 import { colors, radius, spacing } from '@/theme';
 
-export default function AdminScreen() {
+function AdminScreen() {
   const ids = usePendingVerifications();
   const tickets = usePendingTickets();
   const cities = useCities();
@@ -148,3 +149,11 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
 });
+
+export default function AdminScreenRoute() {
+  return (
+    <AdminOnly>
+      <AdminScreen />
+    </AdminOnly>
+  );
+}
