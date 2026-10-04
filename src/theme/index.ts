@@ -20,6 +20,8 @@ export const colors = {
   accent: '#F28E2B',
   success: '#1E7A4C',
   danger: '#B3261E',
+  chip: '#E1EEF0',
+  chipMuted: '#ECEFF0',
 } as const;
 
 /** Font family names, as registered by useFonts in src/app/_layout.tsx. */
