@@ -2,6 +2,7 @@ import { DMSans_400Regular } from '@expo-google-fonts/dm-sans/400Regular';
 import { DMSans_500Medium } from '@expo-google-fonts/dm-sans/500Medium';
 import { DMSans_700Bold } from '@expo-google-fonts/dm-sans/700Bold';
 import { Outfit_600SemiBold } from '@expo-google-fonts/outfit/600SemiBold';
+import { Outfit_700Bold } from '@expo-google-fonts/outfit/700Bold';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
@@ -38,6 +39,7 @@ export default function RootLayout() {
     DMSans_500Medium,
     DMSans_700Bold,
     Outfit_600SemiBold,
+    Outfit_700Bold,
   });
 
   // Fall back to system fonts if loading fails rather than blocking the app.

@@ -136,19 +136,20 @@ export function SelectField({
 
 const styles = StyleSheet.create({
   wrapper: {
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   box: {
-    minHeight: 52,
+    minHeight: 58,
     justifyContent: 'center',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
     backgroundColor: colors.surface,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.md + 2,
   },
   boxError: {
     borderColor: colors.danger,
+    borderWidth: 2,
   },
   error: {
     color: colors.danger,
