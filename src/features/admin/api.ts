@@ -1,4 +1,4 @@
-import type { Profile, Trip, Verification } from '@/lib/database.types';
+import type { Trip, Verification } from '@/lib/database.types';
 import { supabase } from '@/lib/supabase';
 
 /** Navigation only: the database checks admin rights on every read and review. */
@@ -35,13 +35,6 @@ export async function fetchVerification(id: string): Promise<Verification | null
     .select('*')
     .eq('id', id)
     .maybeSingle();
-  if (error) throw error;
-  return data;
-}
-
-export async function fetchProfiles(ids: string[]): Promise<Profile[]> {
-  if (ids.length === 0) return [];
-  const { data, error } = await supabase.from('profiles').select('*').in('id', ids);
   if (error) throw error;
   return data;
 }

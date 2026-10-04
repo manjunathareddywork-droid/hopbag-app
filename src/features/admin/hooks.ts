@@ -7,7 +7,6 @@ import {
   fetchIsAdmin,
   fetchPendingTickets,
   fetchPendingVerifications,
-  fetchProfiles,
   fetchVerification,
   reviewTicket,
   reviewVerification,
@@ -18,7 +17,6 @@ export const adminKeys = {
   pendingIds: ['admin', 'pending-ids'] as const,
   pendingTickets: ['admin', 'pending-tickets'] as const,
   verification: (id: string) => ['admin', 'verification', id] as const,
-  profiles: (ids: string[]) => ['admin', 'profiles', ...ids] as const,
 };
 
 export function useIsAdmin() {
@@ -41,16 +39,6 @@ export function usePendingTickets() {
 
 export function useVerification(id: string) {
   return useQuery({ queryKey: adminKeys.verification(id), queryFn: () => fetchVerification(id) });
-}
-
-/** Names for the people in a review list. */
-export function useProfiles(ids: string[]) {
-  const sorted = [...new Set(ids)].sort();
-  return useQuery({
-    queryKey: adminKeys.profiles(sorted),
-    queryFn: () => fetchProfiles(sorted),
-    enabled: sorted.length > 0,
-  });
 }
 
 export function useReviewVerification() {

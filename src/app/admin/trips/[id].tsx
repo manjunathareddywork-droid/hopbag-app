@@ -6,7 +6,8 @@ import { DetailRow } from '@/components/detail-row';
 import { LoadingView } from '@/components/loading-view';
 import { Screen } from '@/components/screen';
 import { VerifiedBadge } from '@/components/verified-badge';
-import { useProfiles, useReviewTicket } from '@/features/admin/hooks';
+import { useReviewTicket } from '@/features/admin/hooks';
+import { useProfilesByIds } from '@/features/profile/hooks';
 import { useCities, useStates } from '@/features/places/hooks';
 import { cityLabel } from '@/features/places/labels';
 import { formatGrams } from '@/features/requests/weight';
@@ -23,7 +24,7 @@ export default function ReviewTicketScreen() {
   const trip = useTrip(id);
   const cities = useCities();
   const states = useStates();
-  const people = useProfiles(trip.data ? [trip.data.traveler_id] : []);
+  const people = useProfilesByIds(trip.data ? [trip.data.traveler_id] : []);
   const ticket = useDocumentUrl(trip.data?.ticket_photo_path);
   const review = useReviewTicket();
 

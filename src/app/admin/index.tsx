@@ -3,7 +3,8 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-n
 
 import { LoadingView } from '@/components/loading-view';
 import { Text } from '@/components/text';
-import { usePendingTickets, usePendingVerifications, useProfiles } from '@/features/admin/hooks';
+import { usePendingTickets, usePendingVerifications } from '@/features/admin/hooks';
+import { useProfilesByIds } from '@/features/profile/hooks';
 import { useCities } from '@/features/places/hooks';
 import { TripCard } from '@/features/travelers/trip-card';
 import { t, type StringKey } from '@/i18n';
@@ -14,7 +15,7 @@ export default function AdminScreen() {
   const ids = usePendingVerifications();
   const tickets = usePendingTickets();
   const cities = useCities();
-  const people = useProfiles([
+  const people = useProfilesByIds([
     ...(ids.data ?? []).map((v) => v.user_id),
     ...(tickets.data ?? []).map((tr) => tr.traveler_id),
   ]);

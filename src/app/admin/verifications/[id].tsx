@@ -6,7 +6,8 @@ import { DetailRow } from '@/components/detail-row';
 import { LoadingView } from '@/components/loading-view';
 import { Screen } from '@/components/screen';
 import { Text } from '@/components/text';
-import { useProfiles, useReviewVerification, useVerification } from '@/features/admin/hooks';
+import { useReviewVerification, useVerification } from '@/features/admin/hooks';
+import { useProfilesByIds } from '@/features/profile/hooks';
 import { ReviewPanel } from '@/features/admin/review-panel';
 import { useSession } from '@/features/auth/session';
 import { useDocumentUrl } from '@/features/travelers/hooks';
@@ -20,7 +21,7 @@ export default function ReviewVerificationScreen() {
   const router = useRouter();
   const { session } = useSession();
   const verification = useVerification(id);
-  const people = useProfiles(verification.data ? [verification.data.user_id] : []);
+  const people = useProfilesByIds(verification.data ? [verification.data.user_id] : []);
   const photo = useDocumentUrl(verification.data?.id_photo_path);
   const review = useReviewVerification();
 

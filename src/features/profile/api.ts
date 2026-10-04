@@ -7,6 +7,14 @@ import type { ProfileFormValues } from './schema';
 const AVATAR_BUCKET = 'avatars';
 const AVATAR_SIZE = 512;
 
+/** Public profile fields of other people (name, city, photo, verified badge). */
+export async function fetchProfilesByIds(ids: string[]): Promise<Profile[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase.from('profiles').select('*').in('id', ids);
+  if (error) throw error;
+  return data;
+}
+
 export async function fetchMyProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from('profiles')

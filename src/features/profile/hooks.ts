@@ -2,12 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useSession } from '@/features/auth/session';
 
-import { fetchMyProfile, getAvatarUrl, saveProfile } from './api';
+import { fetchMyProfile, fetchProfilesByIds, getAvatarUrl, saveProfile } from './api';
 import type { ProfileFormValues } from './schema';
 
 export const profileKeys = {
   mine: (userId: string) => ['profile', userId] as const,
   avatar: (path: string) => ['avatar', path] as const,
+  byIds: (ids: string[]) => ['profiles', ...ids] as const,
 };
 
 export function useMyProfile() {
@@ -17,6 +18,15 @@ export function useMyProfile() {
     queryKey: profileKeys.mine(userId ?? 'none'),
     queryFn: () => fetchMyProfile(userId!),
     enabled: !!userId,
+  });
+}
+
+export function useProfilesByIds(ids: string[]) {
+  const sorted = [...new Set(ids)].sort();
+  return useQuery({
+    queryKey: profileKeys.byIds(sorted),
+    queryFn: () => fetchProfilesByIds(sorted),
+    enabled: sorted.length > 0,
   });
 }
 
