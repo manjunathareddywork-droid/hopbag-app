@@ -7,7 +7,6 @@ import {
   createRequest,
   fetchBlockedTerms,
   fetchCategories,
-  fetchCities,
   fetchMyRequests,
   fetchRequest,
   getRequestPhotoUrl,
@@ -18,7 +17,6 @@ const HOUR = 60 * 60 * 1000;
 
 export const requestKeys = {
   categories: ['categories'] as const,
-  cities: ['cities'] as const,
   blockedTerms: ['blocked-terms'] as const,
   mine: ['requests', 'mine'] as const,
   detail: (id: string) => ['requests', 'detail', id] as const,
@@ -28,10 +26,6 @@ export const requestKeys = {
 /** Reference data changes rarely; fetch once per hour at most. */
 export function useCategories() {
   return useQuery({ queryKey: requestKeys.categories, queryFn: fetchCategories, staleTime: HOUR });
-}
-
-export function useCities() {
-  return useQuery({ queryKey: requestKeys.cities, queryFn: fetchCities, staleTime: HOUR });
 }
 
 export function useBlockedTerms() {

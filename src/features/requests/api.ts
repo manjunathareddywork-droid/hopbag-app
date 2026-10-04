@@ -1,4 +1,4 @@
-import type { BlockedTerm, Category, City, ItemRequest } from '@/lib/database.types';
+import type { BlockedTerm, Category, ItemRequest } from '@/lib/database.types';
 import { prepareJpeg } from '@/lib/images';
 import { rupeesToPaise } from '@/lib/money';
 import { supabase } from '@/lib/supabase';
@@ -15,16 +15,6 @@ export async function fetchCategories(): Promise<Category[]> {
     .select('*')
     .eq('is_active', true)
     .order('sort_order');
-  if (error) throw error;
-  return data;
-}
-
-export async function fetchCities(): Promise<City[]> {
-  const { data, error } = await supabase
-    .from('cities')
-    .select('*')
-    .eq('is_active', true)
-    .order('name');
   if (error) throw error;
   return data;
 }

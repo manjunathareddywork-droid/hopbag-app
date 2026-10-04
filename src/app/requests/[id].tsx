@@ -7,16 +7,16 @@ import { LoadingView } from '@/components/loading-view';
 import { Screen } from '@/components/screen';
 import { StatusChip } from '@/components/status-chip';
 import { Text } from '@/components/text';
-import { useStates } from '@/features/profile/hooks';
+import { useCities, useStates } from '@/features/places/hooks';
+import { cityLabel } from '@/features/places/labels';
 import { requestErrorMessage } from '@/features/requests/errors';
 import {
   useCancelRequest,
   useCategories,
-  useCities,
   useRequest,
   useRequestPhotoUrl,
 } from '@/features/requests/hooks';
-import { categoryText, cityLabel } from '@/features/requests/labels';
+import { categoryText } from '@/features/requests/labels';
 import { formatGrams } from '@/features/requests/weight';
 import { t } from '@/i18n';
 import { formatDate } from '@/lib/dates';

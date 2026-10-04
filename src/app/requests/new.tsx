@@ -2,14 +2,9 @@ import { useRouter } from 'expo-router';
 
 import { LoadingView } from '@/components/loading-view';
 import { Screen } from '@/components/screen';
-import { useStates } from '@/features/profile/hooks';
+import { useCities, useStates } from '@/features/places/hooks';
 import { requestErrorMessage } from '@/features/requests/errors';
-import {
-  useBlockedTerms,
-  useCategories,
-  useCities,
-  useCreateRequest,
-} from '@/features/requests/hooks';
+import { useBlockedTerms, useCategories, useCreateRequest } from '@/features/requests/hooks';
 import { RequestForm } from '@/features/requests/request-form';
 import { t } from '@/i18n';
 
