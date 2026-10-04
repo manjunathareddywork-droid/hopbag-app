@@ -1,7 +1,7 @@
 # Hopbag product rules (Phase 1: India inter-state)
 
 ## Roles
-- Requester: posts an item request (what, from which city, deadline, budget).
+- Requester: posts an item request (what, from which city, deadline within 20 days, budget).
 - Traveler: posts a trip (from city, to city, date, ticket/PNR). Offers to carry requests on that route.
 - Admin: reviews traveler verification, allowlist, disputes.
 One account can be both.
@@ -13,6 +13,7 @@ One account can be both.
 4. Traveler can open and inspect the item before accepting handover. Requester sees the item photo and weight.
 5. Per-traveler per-trip item cap: max 3 requests and max 5 kg total (adjustable in config).
 6. Payment is held until delivery is confirmed with a handover code, then released to the traveler minus platform fee.
+   Escrow model (decided 2026-10-04): the requester pays the full amount (item cost + carrying fee) up front. It shows in the traveler's Hopbag wallet as locked (visible, not withdrawable). When the requester confirms delivery with the handover code, it unlocks and the traveler can withdraw it to their bank account. Cancellations before pickup refund the requester; disputes keep it locked.
 7. Fares are agreed between the two users but must be inside a min/max band per kg shown in the app.
 8. Hopbag is a marketplace, not a courier. Terms must say so; get lawyer review before public launch.
 
@@ -22,4 +23,5 @@ Side exits: cancelled, expired, disputed, refunded.
 
 ## Open items to settle with the lawyer before public launch
 - Payment holding model (Razorpay Route / marketplace settlement) and platform fee GST handling
+- Whether the traveler "wallet" counts as a prepaid payment instrument under RBI rules; holding money ourselves may need a licence, so the wallet may need to be a ledger view over Razorpay Route held transfers rather than money Hopbag holds
 - Terms of service, liability, prohibited items list, KYC level for travelers
