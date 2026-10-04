@@ -27,4 +27,18 @@ Read docs/PRODUCT.md for rules and docs/PHASES.md for the build plan. Work on ON
 - Logo files: assets/brand (from hopbag-logo-kit.zip)
 
 ## Commands
-(filled in during Phase 0)
+- `npm start`: start Expo dev server (scan the QR code with Expo Go)
+- `npm run typecheck` / `npm run lint` / `npm test`: the three checks CI runs
+- `npm run check`: all three in one go; run before saying a task is done
+- `npm run format`: Prettier (Markdown is ignored on purpose)
+- `npm run test:db`: pgTAP tests in supabase/tests (needs Docker + `supabase db start`)
+- `npx expo install <pkg>`: add packages (picks SDK-compatible versions); never plain `npm install <pkg>`
+- `supabase migration new <name>`: new SQL migration in supabase/migrations
+- `supabase link --project-ref <ref>` then `supabase db push`: apply migrations to the hosted project
+
+## Layout
+- src/app: Expo Router screens only. Tests go in src/__tests__, not src/app (every file there becomes a route).
+- src/theme: colours, fonts, spacing. src/i18n/en.ts: every user-facing string.
+- src/lib: env, Supabase client, TanStack Query client.
+- supabase/migrations, supabase/tests/database (00_rls_guard fails CI if any public table lacks RLS or a policy).
+- Expo SDK 57. Testing Library v14: `render` is async, always `await render(...)`.
