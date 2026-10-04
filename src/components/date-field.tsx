@@ -37,9 +37,8 @@ export function DateField({ label, placeholder, value, onChange, minDate, maxDat
       DateTimePickerAndroid.open({
         ...pickerProps,
         value: isoToLocalDate(value || minDate),
-        onChange: (event, date) => {
-          if (event.type === 'set' && date) onChange(localDateToIso(date));
-        },
+        // Only fires when a date is picked; dismissing the dialog changes nothing.
+        onValueChange: (_event, date) => onChange(localDateToIso(date)),
       });
     } else {
       setIosDraft(isoToLocalDate(value || minDate));
@@ -77,7 +76,7 @@ export function DateField({ label, placeholder, value, onChange, minDate, maxDat
               {...pickerProps}
               display="inline"
               value={iosDraft}
-              onChange={(_event, date) => date && setIosDraft(date)}
+              onValueChange={(_event, date) => setIosDraft(date)}
             />
             <View style={styles.footer}>
               <Button
