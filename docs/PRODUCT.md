@@ -13,7 +13,7 @@ One account can be both.
 4. Traveler can open and inspect the item before accepting handover. Requester sees the item photo and weight.
 5. Per-traveler per-trip item cap: max 3 requests and max 5 kg total (adjustable in config).
 6. Payment is held until delivery is confirmed with a handover code, then released to the traveler minus platform fee.
-   Escrow model (decided 2026-10-04): the requester pays the full amount (item cost + carrying fee) up front. It shows in the traveler's Hopbag wallet as locked (visible, not withdrawable). When the requester confirms delivery with the handover code, it unlocks and the traveler can withdraw it to their bank account. Cancellations before pickup refund the requester; disputes keep it locked.
+   Escrow model (decided 2026-10-04): Hopbag never holds money; Razorpay holds it. The requester pays the full amount (item cost + carrying fee) through Razorpay. Razorpay keeps it on hold for the traveler (Route transfer with on_hold). The traveler's Hopbag "wallet" is only a view of those held transfers: shown as locked, not withdrawable. When the requester confirms delivery with the handover code, Hopbag tells Razorpay to release the hold and Razorpay settles to the traveler's bank account. Cancellations before pickup are refunded by Razorpay to the requester; disputes keep the hold in place.
 7. Fares are agreed between the two users but must be inside a min/max band per kg shown in the app.
 8. Hopbag is a marketplace, not a courier. Terms must say so; get lawyer review before public launch.
 
@@ -23,5 +23,5 @@ Side exits: cancelled, expired, disputed, refunded.
 
 ## Open items to settle with the lawyer before public launch
 - Payment holding model (Razorpay Route / marketplace settlement) and platform fee GST handling
-- Whether the traveler "wallet" counts as a prepaid payment instrument under RBI rules; holding money ourselves may need a licence, so the wallet may need to be a ledger view over Razorpay Route held transfers rather than money Hopbag holds
+- Confirm with Razorpay and the lawyer/CA that Route on-hold transfers fit this model (traveler onboarding as linked accounts and their KYC, hold duration limits, refunds of held transfers). Hopbag holds no funds, so no wallet/PPI licence should be needed; get that confirmed in writing
 - Terms of service, liability, prohibited items list, KYC level for travelers
