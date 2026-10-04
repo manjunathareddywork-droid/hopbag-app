@@ -41,4 +41,22 @@ describe('dbErrorMessage', () => {
   it('tells non-admins they cannot review', () => {
     expect(dbErrorMessage({ code: 'HB012' }, 'admin.reviewFailed')).toBe(en.errors.adminsOnly);
   });
+
+  it('shows the fare band from the database', () => {
+    expect(dbErrorMessage({ code: 'HB015', details: '10000,50000' }, 'offers.sendFailed')).toBe(
+      'Choose a fare between ₹100 and ₹500.',
+    );
+  });
+
+  it('says how much space is left on a full trip', () => {
+    expect(dbErrorMessage({ code: 'HB018', details: '0,1500' }, 'offers.sendFailed')).toBe(
+      'Your trip is full: 0 more items and 1.5 kg left.',
+    );
+  });
+
+  it('explains a duplicate offer', () => {
+    expect(dbErrorMessage({ code: '23505' }, 'offers.sendFailed')).toBe(
+      en.offers.errors.alreadyOffered,
+    );
+  });
 });

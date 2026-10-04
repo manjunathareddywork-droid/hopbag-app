@@ -66,6 +66,22 @@ type TripWrite = {
   ticket_photo_path: string;
 };
 
+export type OfferStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'closed';
+
+type OfferRow = {
+  id: string;
+  request_id: string;
+  trip_id: string;
+  traveler_id: string;
+  fare_paise: number;
+  message: string;
+  travel_date: string;
+  mode: TravelMode;
+  status: OfferStatus;
+  created_at: string;
+  updated_at: string;
+};
+
 type ItemRequestRow = {
   id: string;
   requester_id: string;
@@ -79,8 +95,17 @@ type ItemRequestRow = {
   budget_paise: number;
   photo_path: string | null;
   status: RequestStatus;
+  accepted_offer_id: string | null;
   created_at: string;
   updated_at: string;
+};
+
+/** A row from request_feed(trip_id). */
+export type FeedRequest = Omit<ItemRequestRow, 'accepted_offer_id' | 'updated_at'> & {
+  exact_match: boolean;
+  fare_min_paise: number;
+  fare_max_paise: number;
+  my_offer_status: OfferStatus | null;
 };
 
 type ItemRequestWrite = {
@@ -188,6 +213,12 @@ export type Database = {
         Update: Partial<TripWrite>;
         Relationships: [];
       };
+      offers: {
+        Row: OfferRow;
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {
@@ -215,6 +246,26 @@ export type Database = {
         Args: { trip_id: string };
         Returns: boolean;
       };
+      request_feed: {
+        Args: { p_trip_id: string };
+        Returns: FeedRequest[];
+      };
+      make_offer: {
+        Args: { p_request_id: string; p_trip_id: string; p_fare_paise: number; p_message?: string };
+        Returns: OfferRow;
+      };
+      withdraw_offer: {
+        Args: { p_offer_id: string };
+        Returns: OfferRow;
+      };
+      accept_offer: {
+        Args: { p_offer_id: string };
+        Returns: OfferRow;
+      };
+      decline_offer: {
+        Args: { p_offer_id: string };
+        Returns: OfferRow;
+      };
     };
     Enums: {
       request_status: RequestStatus;
@@ -222,6 +273,7 @@ export type Database = {
       id_document_type: IdDocumentType;
       travel_mode: TravelMode;
       trip_status: TripStatus;
+      offer_status: OfferStatus;
     };
     CompositeTypes: { [_ in never]: never };
   };
@@ -240,3 +292,4 @@ export type Verification = Tables['traveler_verifications']['Row'];
 export type Trip = Tables['trips']['Row'];
 export type TripInsert = Tables['trips']['Insert'];
 export type AppSetting = Tables['app_settings']['Row'];
+export type Offer = Tables['offers']['Row'];

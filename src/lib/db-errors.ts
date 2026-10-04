@@ -1,11 +1,13 @@
 import { formatGrams } from '@/features/requests/weight';
 import { t, type StringKey } from '@/i18n';
 
+import { formatPaise } from './money';
+
 type DbError = { code?: string; details?: string | null };
 
 /**
  * Turns a database rule error into a message people can act on. The HB0xx codes
- * are listed at the top of the item_requests and travelers migrations.
+ * are listed at the top of the item_requests, travelers and offers migrations.
  */
 export function dbErrorMessage(error: unknown, fallback: StringKey): string {
   const { code, details } = (error ?? {}) as DbError;
@@ -39,6 +41,27 @@ export function dbErrorMessage(error: unknown, fallback: StringKey): string {
       return t('verify.errors.alreadySubmitted');
     case 'HB014':
       return t('admin.reasonRequired');
+    case 'HB015': {
+      const [min, max] = (details ?? '').split(',').map(Number);
+      return t('offers.fareOutOfBand', { min: formatPaise(min || 0), max: formatPaise(max || 0) });
+    }
+    case 'HB016':
+      return t('offers.errors.cannotCarry');
+    case 'HB017':
+      return t('offers.errors.routeMismatch');
+    case 'HB018': {
+      const [items, grams] = (details ?? '').split(',').map(Number);
+      return t('offers.errors.tripFull', {
+        items: Math.max(0, items || 0),
+        weight: formatGrams(Math.max(0, grams || 0)),
+      });
+    }
+    case 'HB019':
+      return t('offers.errors.ownRequest');
+    case 'HB021':
+      return t('offers.errors.tripHasItems');
+    case '23505':
+      return t('offers.errors.alreadyOffered');
     default:
       return t(fallback);
   }
