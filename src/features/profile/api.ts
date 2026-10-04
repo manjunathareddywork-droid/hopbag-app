@@ -1,4 +1,4 @@
-import type { Profile, State } from '@/lib/database.types';
+import type { Profile } from '@/lib/database.types';
 import { prepareJpeg } from '@/lib/images';
 import { supabase } from '@/lib/supabase';
 
@@ -13,12 +13,6 @@ export async function fetchMyProfile(userId: string): Promise<Profile | null> {
     .select('*')
     .eq('id', userId)
     .maybeSingle();
-  if (error) throw error;
-  return data;
-}
-
-export async function fetchStates(): Promise<State[]> {
-  const { data, error } = await supabase.from('states').select('code, name').order('name');
   if (error) throw error;
   return data;
 }
@@ -52,8 +46,7 @@ export async function saveProfile(
 
   const fields = {
     full_name: values.fullName,
-    home_state: values.homeState,
-    home_city: values.homeCity,
+    home_city_id: Number(values.homeCityId),
     avatar_path: avatarPath,
   };
 

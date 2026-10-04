@@ -2,7 +2,8 @@ import { useRouter } from 'expo-router';
 
 import { LoadingView } from '@/components/loading-view';
 import { Screen } from '@/components/screen';
-import { useAvatarUrl, useMyProfile, useSaveProfile, useStates } from '@/features/profile/hooks';
+import { useCities, useStates } from '@/features/places/hooks';
+import { useAvatarUrl, useMyProfile, useSaveProfile } from '@/features/profile/hooks';
 import { ProfileForm } from '@/features/profile/profile-form';
 import { t } from '@/i18n';
 
@@ -10,15 +11,19 @@ export default function EditProfileScreen() {
   const router = useRouter();
   const { data: profile } = useMyProfile();
   const states = useStates();
+  const cities = useCities();
   const { data: avatarUrl } = useAvatarUrl(profile?.avatar_path);
   const save = useSaveProfile();
 
-  if (!profile || !states.data) {
+  if (!profile || !states.data || !cities.data) {
     return (
       <LoadingView
-        error={states.isError ? t('common.networkError') : undefined}
+        error={states.isError || cities.isError ? t('common.networkError') : undefined}
         retryLabel={t('common.retry')}
-        onRetry={() => states.refetch()}
+        onRetry={() => {
+          states.refetch();
+          cities.refetch();
+        }}
       />
     );
   }
@@ -28,6 +33,7 @@ export default function EditProfileScreen() {
       <ProfileForm
         profile={profile}
         currentPhotoUrl={avatarUrl}
+        cities={cities.data}
         states={states.data}
         submitLabel={t('editProfile.submit')}
         saving={save.isPending}

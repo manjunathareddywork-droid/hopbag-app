@@ -65,7 +65,8 @@ function RootNavigator() {
       />
     );
   }
-  const hasProfile = !!profile.data;
+  // Profiles from before the city list existed must choose a city (onboarding again).
+  const hasProfile = !!profile.data && profile.data.home_city_id !== null;
 
   return (
     <Stack

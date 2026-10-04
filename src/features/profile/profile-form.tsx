@@ -8,7 +8,8 @@ import { SelectField } from '@/components/select-field';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
 import { t, type StringKey } from '@/i18n';
-import type { Profile, State } from '@/lib/database.types';
+import { cityItems } from '@/features/places/labels';
+import type { City, Profile, State } from '@/lib/database.types';
 import { pickImage } from '@/lib/images';
 import { colors, spacing } from '@/theme';
 
@@ -17,6 +18,7 @@ import { profileFormSchema, type ProfileFormValues } from './schema';
 type Props = {
   profile: Profile | null;
   currentPhotoUrl?: string | null;
+  cities: City[];
   states: State[];
   submitLabel: string;
   saving: boolean;
@@ -29,6 +31,7 @@ const errorText = (message?: string) => (message ? t(message as StringKey) : und
 export function ProfileForm({
   profile,
   currentPhotoUrl,
+  cities,
   states,
   submitLabel,
   saving,
@@ -39,8 +42,7 @@ export function ProfileForm({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       fullName: profile?.full_name ?? '',
-      homeState: profile?.home_state ?? '',
-      homeCity: profile?.home_city ?? '',
+      homeCityId: profile?.home_city_id ? String(profile.home_city_id) : '',
       photoUri: null,
     },
   });
@@ -87,30 +89,16 @@ export function ProfileForm({
 
       <Controller
         control={control}
-        name="homeState"
+        name="homeCityId"
         render={({ field, fieldState }) => (
           <SelectField
-            label={t('profile.stateLabel')}
-            placeholder={t('profile.statePlaceholder')}
-            items={states.map((s) => ({ value: s.code, label: s.name }))}
-            value={field.value}
-            onChange={field.onChange}
-            error={errorText(fieldState.error?.message)}
-          />
-        )}
-      />
-
-      <Controller
-        control={control}
-        name="homeCity"
-        render={({ field, fieldState }) => (
-          <TextField
             label={t('profile.cityLabel')}
             placeholder={t('profile.cityPlaceholder')}
-            autoCapitalize="words"
+            searchPlaceholder={t('requests.citySearch')}
+            items={cityItems(cities, states)}
             value={field.value}
-            onChangeText={field.onChange}
-            onBlur={field.onBlur}
+            onChange={field.onChange}
+            hint={t('profile.cityHint')}
             error={errorText(fieldState.error?.message)}
           />
         )}

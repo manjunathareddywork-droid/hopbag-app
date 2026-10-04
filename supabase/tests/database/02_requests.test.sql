@@ -4,17 +4,20 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(43);
+select plan(44);
 
 insert into auth.users (id, aud, role, phone) values
   ('11111111-1111-1111-1111-111111111111', 'authenticated', 'authenticated', '919000000001'),
   ('22222222-2222-2222-2222-222222222222', 'authenticated', 'authenticated', '919000000002'),
   ('33333333-3333-3333-3333-333333333333', 'authenticated', 'authenticated', '919000000003');
 
-insert into public.profiles (id, full_name, home_state, home_city) values
-  ('11111111-1111-1111-1111-111111111111', 'Asha Rao', 'KA', 'Bengaluru'),
-  ('22222222-2222-2222-2222-222222222222', 'Bala Reddy', 'TS', 'Hyderabad'),
-  ('33333333-3333-3333-3333-333333333333', 'Admin', 'KA', 'Bengaluru');
+insert into public.profiles (id, full_name, home_city_id)
+select u.id, u.name, (select id from public.cities where name = u.city)
+from (values
+  ('11111111-1111-1111-1111-111111111111'::uuid, 'Asha Rao', 'Bengaluru'),
+  ('22222222-2222-2222-2222-222222222222'::uuid, 'Bala Reddy', 'Hyderabad'),
+  ('33333333-3333-3333-3333-333333333333'::uuid, 'Admin', 'Bengaluru')
+) as u (id, name, city);
 
 insert into public.admins (user_id) values ('33333333-3333-3333-3333-333333333333');
 
@@ -128,8 +131,10 @@ select throws_ok(pg_temp.req(from_city => 'blr'), 'HB004', null,
   'same pickup and delivery city is rejected');
 select throws_ok(pg_temp.req(deadline_days => 0), 'HB005', null,
   'deadline today is rejected');
-select throws_ok(pg_temp.req(deadline_days => 91), 'HB005', null,
-  'deadline more than 90 days out is rejected');
+select throws_ok(pg_temp.req(deadline_days => 21), 'HB005', null,
+  'deadline more than 20 days out is rejected');
+select lives_ok(pg_temp.req(deadline_days => 20, item => 'Mysore Pak', category => 'sweets_snacks'),
+  'deadline exactly 20 days out is accepted');
 select throws_ok(pg_temp.req(budget => 4999), '23514', null,
   'budget below Rs 50 is rejected');
 

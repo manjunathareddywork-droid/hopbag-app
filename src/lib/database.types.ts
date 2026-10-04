@@ -60,8 +60,10 @@ export type Database = {
         Row: {
           id: string;
           full_name: string;
+          /** Derived from home_city_id by the database. */
           home_state: string;
-          home_city: string;
+          /** Null only for profiles created before cities existed; the app asks for it. */
+          home_city_id: number | null;
           avatar_path: string | null;
           created_at: string;
           updated_at: string;
@@ -69,14 +71,12 @@ export type Database = {
         Insert: {
           id: string;
           full_name: string;
-          home_state: string;
-          home_city: string;
+          home_city_id: number;
           avatar_path?: string | null;
         };
         Update: {
           full_name?: string;
-          home_state?: string;
-          home_city?: string;
+          home_city_id?: number;
           avatar_path?: string | null;
         };
         Relationships: [];

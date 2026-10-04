@@ -3,21 +3,28 @@ import { StyleSheet, View } from 'react-native';
 import { LoadingView } from '@/components/loading-view';
 import { Screen } from '@/components/screen';
 import { Text } from '@/components/text';
-import { useSaveProfile, useStates } from '@/features/profile/hooks';
+import { useCities, useStates } from '@/features/places/hooks';
+import { useMyProfile, useSaveProfile } from '@/features/profile/hooks';
 import { ProfileForm } from '@/features/profile/profile-form';
 import { t } from '@/i18n';
 import { spacing } from '@/theme';
 
 export default function OnboardingScreen() {
+  // Existing profile when an older account still needs to choose a city.
+  const { data: profile } = useMyProfile();
   const states = useStates();
+  const cities = useCities();
   const save = useSaveProfile();
 
-  if (!states.data) {
+  if (!states.data || !cities.data) {
     return (
       <LoadingView
-        error={states.isError ? t('common.networkError') : undefined}
+        error={states.isError || cities.isError ? t('common.networkError') : undefined}
         retryLabel={t('common.retry')}
-        onRetry={() => states.refetch()}
+        onRetry={() => {
+          states.refetch();
+          cities.refetch();
+        }}
       />
     );
   }
@@ -32,7 +39,8 @@ export default function OnboardingScreen() {
         </Text>
       </View>
       <ProfileForm
-        profile={null}
+        profile={profile ?? null}
+        cities={cities.data}
         states={states.data}
         submitLabel={t('onboarding.submit')}
         saving={save.isPending}

@@ -4,11 +4,12 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(24);
+select plan(27);
 
 insert into auth.users (id, aud, role, phone) values
   ('11111111-1111-1111-1111-111111111111', 'authenticated', 'authenticated', '919000000001'),
-  ('22222222-2222-2222-2222-222222222222', 'authenticated', 'authenticated', '919000000002');
+  ('22222222-2222-2222-2222-222222222222', 'authenticated', 'authenticated', '919000000002'),
+  ('33333333-3333-3333-3333-333333333333', 'authenticated', 'authenticated', '919000000003');
 
 -------------------------------------------------------------------------------
 -- Anonymous visitors
@@ -46,14 +47,16 @@ select throws_ok(
 );
 
 select lives_ok(
-  $$ insert into public.profiles (id, full_name, home_state, home_city)
-     values ('11111111-1111-1111-1111-111111111111', 'Asha Rao', 'KA', 'Bengaluru') $$,
+  $$ insert into public.profiles (id, full_name, home_city_id)
+     values ('11111111-1111-1111-1111-111111111111', 'Asha Rao',
+             (select id from public.cities where name = 'Bengaluru')) $$,
   'A can create their own profile'
 );
 
 select throws_ok(
-  $$ insert into public.profiles (id, full_name, home_state, home_city)
-     values ('22222222-2222-2222-2222-222222222222', 'Fake B', 'KA', 'Bengaluru') $$,
+  $$ insert into public.profiles (id, full_name, home_city_id)
+     values ('22222222-2222-2222-2222-222222222222', 'Fake B',
+             (select id from public.cities where name = 'Bengaluru')) $$,
   '42501', null,
   'A cannot create a profile for B'
 );
@@ -64,8 +67,9 @@ select throws_ok(
 set local request.jwt.claims to '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}';
 
 select lives_ok(
-  $$ insert into public.profiles (id, full_name, home_state, home_city)
-     values ('22222222-2222-2222-2222-222222222222', 'Bala Reddy', 'TS', 'Hyderabad') $$,
+  $$ insert into public.profiles (id, full_name, home_city_id)
+     values ('22222222-2222-2222-2222-222222222222', 'Bala Reddy',
+             (select id from public.cities where name = 'Hyderabad')) $$,
   'B can create their own profile'
 );
 
@@ -87,15 +91,24 @@ select is_empty(
 );
 
 select lives_ok(
-  $$ update public.profiles set full_name = 'Asha R', home_city = 'Mysuru'
+  $$ update public.profiles set full_name = 'Asha R',
+       home_city_id = (select id from public.cities where name = 'Hyderabad')
      where id = '11111111-1111-1111-1111-111111111111' $$,
   'A can update their own profile'
 );
 
 select is(
-  (select home_city from public.profiles where id = '11111111-1111-1111-1111-111111111111'),
-  'Mysuru',
-  'A''s update was saved'
+  (select full_name || ' ' || home_state from public.profiles
+   where id = '11111111-1111-1111-1111-111111111111'),
+  'Asha R TS',
+  'A''s update was saved and home state follows the new city'
+);
+
+select throws_ok(
+  $$ update public.profiles set home_state = 'KL'
+     where id = '11111111-1111-1111-1111-111111111111' $$,
+  '42501', null,
+  'A cannot set home_state directly'
 );
 
 select throws_ok(
@@ -136,10 +149,17 @@ select throws_ok(
 );
 
 select throws_ok(
-  $$ update public.profiles set home_state = 'XX'
+  $$ update public.profiles set home_city_id = -1
      where id = '11111111-1111-1111-1111-111111111111' $$,
   '23503', null,
-  'unknown state is rejected'
+  'unknown city is rejected'
+);
+
+select throws_ok(
+  $$ update public.profiles set home_city_id = null
+     where id = '11111111-1111-1111-1111-111111111111' $$,
+  '23514', null,
+  'home city cannot be removed'
 );
 
 select throws_ok(
@@ -154,6 +174,18 @@ select lives_ok(
      where id = '11111111-1111-1111-1111-111111111111' $$,
   'avatar path in the user''s own folder is accepted'
 );
+
+set local request.jwt.claims to '{"sub": "33333333-3333-3333-3333-333333333333", "role": "authenticated"}';
+
+-- home_state is filled from the city, so a missing city fails its NOT NULL first.
+select throws_ok(
+  $$ insert into public.profiles (id, full_name)
+     values ('33333333-3333-3333-3333-333333333333', 'No City') $$,
+  '23502', null,
+  'a profile needs a home city'
+);
+
+set local request.jwt.claims to '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}';
 
 -------------------------------------------------------------------------------
 -- Avatars bucket

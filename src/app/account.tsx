@@ -8,7 +8,9 @@ import { Text } from '@/components/text';
 import { signOut } from '@/features/auth/api';
 import { formatIndianPhone } from '@/features/auth/phone';
 import { useSession } from '@/features/auth/session';
-import { useAvatarUrl, useMyProfile, useStates } from '@/features/profile/hooks';
+import { useCities, useStates } from '@/features/places/hooks';
+import { cityLabel } from '@/features/places/labels';
+import { useAvatarUrl, useMyProfile } from '@/features/profile/hooks';
 import { t } from '@/i18n';
 import { colors, radius, spacing } from '@/theme';
 
@@ -16,11 +18,11 @@ export default function AccountScreen() {
   const { session } = useSession();
   const { data: profile } = useMyProfile();
   const { data: states } = useStates();
+  const { data: cities } = useCities();
   const { data: avatarUrl } = useAvatarUrl(profile?.avatar_path);
 
   if (!profile) return null;
 
-  const stateName = states?.find((s) => s.code === profile.home_state)?.name ?? profile.home_state;
   const phone = session?.user.phone ? formatIndianPhone(`+${session.user.phone}`) : '';
 
   function confirmSignOut() {
@@ -39,7 +41,13 @@ export default function AccountScreen() {
 
       <View style={styles.card}>
         <Row label={t('account.phone')} value={phone} />
-        <Row label={t('account.home')} value={`${profile.home_city}, ${stateName}`} />
+        <Row
+          label={t('account.home')}
+          value={cityLabel(
+            cities?.find((c) => c.id === profile.home_city_id),
+            states,
+          )}
+        />
       </View>
 
       <View style={styles.actions}>

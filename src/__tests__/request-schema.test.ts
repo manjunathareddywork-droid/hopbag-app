@@ -48,7 +48,7 @@ describe('request form rules', () => {
     [{ fromCityId: '3' }, 'requests.errors.sameState'],
     [{ deadline: '' }, 'requests.errors.deadlineRequired'],
     [{ deadline: '2026-10-04' }, 'requests.errors.deadlineRange'],
-    [{ deadline: '2027-01-03' }, 'requests.errors.deadlineRange'],
+    [{ deadline: '2026-10-25' }, 'requests.errors.deadlineRange'],
     [{ budgetRupees: '12.50' }, 'requests.errors.budgetInvalid'],
     [{ budgetRupees: '49' }, 'requests.errors.budgetRange'],
     [{ budgetRupees: '10001' }, 'requests.errors.budgetRange'],
@@ -56,7 +56,7 @@ describe('request form rules', () => {
     expect(firstError(override)).toBe(message);
   });
 
-  it('allows the last day of the 90-day window', () => {
-    expect(firstError({ deadline: '2027-01-02' })).toBeNull();
+  it('allows the last day of the 20-day window', () => {
+    expect(firstError({ deadline: '2026-10-24' })).toBeNull();
   });
 });

@@ -21,7 +21,8 @@ export type RequestRulesContext = {
 
 export const MIN_BUDGET_PAISE = 5000;
 export const MAX_BUDGET_PAISE = 1000000;
-export const MAX_DEADLINE_DAYS = 90;
+/** Keep in step with item_requests_validate() in the database. */
+export const MAX_DEADLINE_DAYS = 20;
 
 export function makeRequestSchema({
   categories,

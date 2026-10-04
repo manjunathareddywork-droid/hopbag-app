@@ -12,12 +12,8 @@ export const profileFormSchema = z.object({
     .trim()
     .min(2, msg('profile.errors.nameShort'))
     .max(80, msg('profile.errors.nameLong')),
-  homeState: z.string().regex(/^[A-Z]{2}$/, msg('profile.errors.stateRequired')),
-  homeCity: z
-    .string()
-    .trim()
-    .min(2, msg('profile.errors.cityShort'))
-    .max(60, msg('profile.errors.cityLong')),
+  /** cities.id as a string (picker value); the database derives the state from it. */
+  homeCityId: z.string().regex(/^\d+$/, msg('profile.errors.cityRequired')),
   /** Local file URI of a newly picked photo; null keeps the current one. */
   photoUri: z.string().nullable(),
 });

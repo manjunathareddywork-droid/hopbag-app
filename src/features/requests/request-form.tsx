@@ -10,6 +10,7 @@ import { DateField } from '@/components/date-field';
 import { SelectField } from '@/components/select-field';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
+import { cityItems } from '@/features/places/labels';
 import { t, type StringKey } from '@/i18n';
 import type { State } from '@/lib/database.types';
 import { addDays, todayIst } from '@/lib/dates';
@@ -74,14 +75,7 @@ export function RequestForm({
     })}`,
   }));
 
-  const cityItems = useMemo(() => {
-    const stateName = (code: string) => states.find((s) => s.code === code)?.name ?? code;
-    return cities.map((c) => ({
-      value: String(c.id),
-      label: `${c.name}, ${stateName(c.state_code)}`,
-      keywords: [...c.aliases, stateName(c.state_code)],
-    }));
-  }, [cities, states]);
+  const cityOptions = useMemo(() => cityItems(cities, states), [cities, states]);
 
   async function pickPhoto() {
     const uri = await pickImage();
@@ -171,7 +165,7 @@ export function RequestForm({
             label={t('requests.fromLabel')}
             placeholder={t('requests.cityPlaceholder')}
             searchPlaceholder={t('requests.citySearch')}
-            items={cityItems}
+            items={cityOptions}
             value={field.value}
             onChange={field.onChange}
             error={requestFormError(fieldState.error?.message)}
@@ -187,7 +181,7 @@ export function RequestForm({
             label={t('requests.toLabel')}
             placeholder={t('requests.cityPlaceholder')}
             searchPlaceholder={t('requests.citySearch')}
-            items={cityItems}
+            items={cityOptions}
             value={field.value}
             onChange={field.onChange}
             error={requestFormError(fieldState.error?.message)}
