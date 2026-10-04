@@ -1,15 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as ImagePicker from 'expo-image-picker';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
-import { StatePicker } from '@/components/state-picker';
+import { SelectField } from '@/components/select-field';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
 import { t, type StringKey } from '@/i18n';
 import type { Profile, State } from '@/lib/database.types';
+import { pickImage } from '@/lib/images';
 import { colors, spacing } from '@/theme';
 
 import { profileFormSchema, type ProfileFormValues } from './schema';
@@ -49,14 +49,8 @@ export function ProfileForm({
   const fullName = useWatch({ control, name: 'fullName' });
 
   async function pickPhoto() {
-    // Uses the system photo picker; no storage permission needed on modern Android.
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-    if (!result.canceled) setValue('photoUri', result.assets[0].uri);
+    const uri = await pickImage({ square: true });
+    if (uri) setValue('photoUri', uri);
   }
 
   return (
@@ -95,11 +89,10 @@ export function ProfileForm({
         control={control}
         name="homeState"
         render={({ field, fieldState }) => (
-          <StatePicker
+          <SelectField
             label={t('profile.stateLabel')}
             placeholder={t('profile.statePlaceholder')}
-            closeLabel={t('common.close')}
-            states={states}
+            items={states.map((s) => ({ value: s.code, label: s.name }))}
             value={field.value}
             onChange={field.onChange}
             error={errorText(fieldState.error?.message)}
