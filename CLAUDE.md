@@ -47,4 +47,9 @@ Read docs/PRODUCT.md for rules and docs/PHASES.md for the build plan. Work on ON
 - Expo SDK 57. Testing Library v14: `render` and `fireEvent` are async, always await them. Use `renderWithQuery` from src/test-utils.tsx.
 - Read local files (photos, picker/manipulator output) with expo-file-system `new File(uri)`, never `fetch(file://...)`: on Android it can return an error text body without failing.
 - Typed routes: if tsc says a new route path is not assignable, run `npx expo start` once to regenerate .expo/types.
+- DB rule errors use custom SQLSTATEs (HB001 blocked item ... HB011 not found), listed at the top of the item_requests migration; the app maps them in src/features/requests/errors.ts. Add new ones there too.
+- Blocked items: patterns in public.blocked_terms are matched as whole words in both Postgres (`\m...\M`) and JS (`\b...\b`); src/__tests__/blocked-terms.test.ts runs the seeded list through the app matcher. Avoid false positives (e.g. "gold" alone blocks Nescafe Gold).
+- Request status changes only through DB functions (cancel_request now; later phases add more). The status trigger enforces the PRODUCT.md lifecycle for everyone.
+- Admins: rows in public.admins (add via the SQL editor until Phase 3). Category/city/blocked-term edits are admin-only by RLS.
+- CI runs on every branch push; push a branch to check SQL tests before merging (no Docker locally).
 - Test phone numbers (local config.toml, and add the same in the hosted dashboard): 919000000001 / 919000000002, OTP 123456.
