@@ -1,4 +1,5 @@
 // Razorpay webhooks (payment.captured, order.paid, payment.failed, refund.processed).
+// payment.failed is stored for the record only: the order stays payable for a retry.
 // No user JWT (verify_jwt = false in config.toml); trust comes from the signature.
 // Replays are safe twice over: events are stored by Razorpay's event id, and the
 // database record_* functions are idempotent.
@@ -41,8 +42,6 @@ Deno.serve(
         p_razorpay_payment_id: action.paymentId,
         p_amount_paise: action.amountPaise,
       }));
-    } else if (action.kind === 'failed') {
-      ({ error } = await db.rpc('record_payment_failed', { p_razorpay_order_id: action.orderId }));
     } else if (action.kind === 'refund_processed') {
       ({ error } = await db.rpc('record_refund_processed', {
         p_razorpay_payment_id: action.paymentId,

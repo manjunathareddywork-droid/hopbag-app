@@ -4,7 +4,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(41);
+select plan(42);
 
 insert into auth.users (id, aud, role, phone) values
   ('11111111-1111-1111-1111-111111111111', 'authenticated', 'authenticated', '919000000001'),
@@ -104,6 +104,8 @@ select lives_ok(
   $$ select public.record_order_created((select id from k where name = 'req'),
        '11111111-1111-1111-1111-111111111111', 'order_test_1') $$,
   'order is recorded');
+select hasnt_function('public', 'record_payment_failed', array['text'],
+  'a failed attempt has no way to mark the order failed (the requester can retry it)');
 select is(
   (select existing_order_id from public.payment_quote((select id from k where name = 'req'),
                                                        '11111111-1111-1111-1111-111111111111')),

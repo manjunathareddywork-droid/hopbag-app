@@ -17,6 +17,8 @@ Hopbag never holds money. Razorpay collects it, holds it and pays it out. Hopbag
 5. The request becomes **paid**, and the ledger shows the amount **held**. The money stays in Hopbag's Razorpay account, unsettled to the traveler.
 6. **Refund before pickup:** the requester taps "Cancel and get a refund". `refund-payment` asks Razorpay for a full refund. When the `refund.processed` webhook arrives, the ledger moves the money back to the requester. The traveler's offer closes, which frees space on their trip.
 
+A failed attempt (`payment.failed`) is stored but changes nothing: Razorpay lets the requester retry on the same order. A payment row is marked failed only when a new order replaces it, or the request is cancelled.
+
 Releasing the money to the traveler (minus the platform fee) is Phase 6.
 
 ### Why replays can't double-count
