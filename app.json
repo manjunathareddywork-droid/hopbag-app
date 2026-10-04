@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Hopbag",
+    "slug": "hopbag",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/brand/icon/png/hopbag-icon-1024.png",
+    "scheme": "hopbag",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F7F9F9",
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0E3B43",
+        "foregroundImage": "./assets/brand/icon/png/hopbag-android-foreground-432.png",
+        "backgroundImage": "./assets/brand/icon/png/hopbag-android-background-432.png",
+        "monochromeImage": "./assets/brand/icon/png/hopbag-android-monochrome-432.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/brand/icon/png/hopbag-icon-48.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0E3B43",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 120
+        }
+      ],
+      "expo-sqlite"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
