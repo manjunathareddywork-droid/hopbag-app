@@ -66,6 +66,28 @@ type TripWrite = {
   ticket_photo_path: string;
 };
 
+export type PaymentStatus = 'created' | 'captured' | 'failed' | 'refund_pending' | 'refunded';
+
+type PaymentRow = {
+  id: string;
+  request_id: string;
+  offer_id: string;
+  requester_id: string;
+  traveler_id: string;
+  item_price_paise: number;
+  fare_paise: number;
+  amount_paise: number;
+  currency: 'INR';
+  razorpay_order_id: string;
+  razorpay_payment_id: string | null;
+  razorpay_refund_id: string | null;
+  status: PaymentStatus;
+  captured_at: string | null;
+  refunded_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type OfferStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'closed';
 
 type OfferRow = {
@@ -93,6 +115,8 @@ type ItemRequestRow = {
   to_city_id: number;
   deadline: string;
   budget_paise: number;
+  /** Shop price stated by the requester; null only on requests from before Phase 5. */
+  item_price_paise: number | null;
   photo_path: string | null;
   status: RequestStatus;
   accepted_offer_id: string | null;
@@ -117,6 +141,7 @@ type ItemRequestWrite = {
   to_city_id: number;
   deadline: string;
   budget_paise: number;
+  item_price_paise: number;
   photo_path?: string | null;
 };
 
@@ -213,6 +238,12 @@ export type Database = {
         Update: Partial<TripWrite>;
         Relationships: [];
       };
+      payments: {
+        Row: PaymentRow;
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       offers: {
         Row: OfferRow;
         Insert: never;
@@ -274,6 +305,7 @@ export type Database = {
       travel_mode: TravelMode;
       trip_status: TripStatus;
       offer_status: OfferStatus;
+      payment_status: PaymentStatus;
     };
     CompositeTypes: { [_ in never]: never };
   };
@@ -293,3 +325,4 @@ export type Trip = Tables['trips']['Row'];
 export type TripInsert = Tables['trips']['Insert'];
 export type AppSetting = Tables['app_settings']['Row'];
 export type Offer = Tables['offers']['Row'];
+export type Payment = Tables['payments']['Row'];

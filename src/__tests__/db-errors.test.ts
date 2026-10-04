@@ -59,4 +59,13 @@ describe('dbErrorMessage', () => {
       en.offers.errors.alreadyOffered,
     );
   });
+
+  it('explains payment errors from the database and Edge Functions', () => {
+    expect(dbErrorMessage({ code: 'HB024' }, 'payment.refundFailed')).toBe(
+      en.payment.errors.cannotRefund,
+    );
+    expect(dbErrorMessage({ code: 'bad_signature' }, 'payment.failedGeneric')).toBe(
+      en.payment.errors.badSignature,
+    );
+  });
 });

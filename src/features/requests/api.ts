@@ -79,6 +79,7 @@ export async function createRequest(
       to_city_id: Number(values.toCityId),
       deadline: values.deadline,
       budget_paise: rupeesToPaise(values.budgetRupees)!,
+      item_price_paise: rupeesToPaise(values.itemPriceRupees)!,
       photo_path: photoPath,
     })
     .select()

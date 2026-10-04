@@ -40,6 +40,11 @@ export function FeedCard({ request, tripId, cities, categories }: Props) {
             { from: cityName(request.from_city_id), to: cityName(request.to_city_id) },
           )}`}
         </Text>
+        {request.item_price_paise !== null ? (
+          <Text variant="caption">
+            {`${t('requests.fields.itemPrice')}: ${formatPaise(request.item_price_paise)}`}
+          </Text>
+        ) : null}
         <Text variant="caption">
           {t('offers.fareRange', {
             min: formatPaise(request.fare_min_paise),

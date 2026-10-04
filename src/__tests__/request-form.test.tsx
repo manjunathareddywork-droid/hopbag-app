@@ -65,6 +65,7 @@ async function fillValid(itemName = 'Filter coffee powder') {
   await chooseCity(en.requests.fromLabel, 'Hyd', 'Hyderabad, Telangana');
   await chooseCity(en.requests.toLabel, 'Bangalore', 'Bengaluru, Karnataka');
   await fireEvent.press(screen.getByLabelText(en.requests.deadlineLabel));
+  await fireEvent.changeText(screen.getByLabelText(en.requests.itemPriceLabel), '400');
   await fireEvent.changeText(screen.getByLabelText(en.requests.budgetLabel), '500');
 }
 
@@ -86,6 +87,7 @@ describe('RequestForm', () => {
       toCityId: '2',
       deadline: mockDeadline,
       budgetRupees: '500',
+      itemPriceRupees: '400',
       photoUri: null,
     });
   });

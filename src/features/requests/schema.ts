@@ -22,6 +22,8 @@ export type RequestRulesContext = {
 export const MIN_BUDGET_PAISE = 5000;
 export const MAX_BUDGET_PAISE = 1000000;
 /** Keep in step with item_requests_validate() in the database. */
+export const MIN_ITEM_PRICE_PAISE = 100;
+export const MAX_ITEM_PRICE_PAISE = 1000000;
 export const MAX_DEADLINE_DAYS = 20;
 
 export function makeRequestSchema({
@@ -57,6 +59,13 @@ export function makeRequestSchema({
           const paise = rupeesToPaise(v);
           return paise === null || (paise >= MIN_BUDGET_PAISE && paise <= MAX_BUDGET_PAISE);
         }, 'requests.errors.budgetRange'),
+      itemPriceRupees: z
+        .string()
+        .refine((v) => rupeesToPaise(v) !== null, 'requests.errors.itemPriceInvalid')
+        .refine((v) => {
+          const paise = rupeesToPaise(v);
+          return paise === null || (paise >= MIN_ITEM_PRICE_PAISE && paise <= MAX_ITEM_PRICE_PAISE);
+        }, 'requests.errors.itemPriceRange'),
       photoUri: z.string().nullable(),
     })
     .superRefine((values, ctx) => {
@@ -102,5 +111,6 @@ export const emptyRequestForm: RequestFormValues = {
   toCityId: '',
   deadline: '',
   budgetRupees: '',
+  itemPriceRupees: '',
   photoUri: null,
 };

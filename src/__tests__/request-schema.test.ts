@@ -23,6 +23,7 @@ const valid: RequestFormValues = {
   toCityId: '2',
   deadline: '2026-10-11',
   budgetRupees: '500',
+  itemPriceRupees: '400',
   photoUri: null,
 };
 
@@ -52,6 +53,10 @@ describe('request form rules', () => {
     [{ budgetRupees: '12.50' }, 'requests.errors.budgetInvalid'],
     [{ budgetRupees: '49' }, 'requests.errors.budgetRange'],
     [{ budgetRupees: '10001' }, 'requests.errors.budgetRange'],
+    [{ itemPriceRupees: '' }, 'requests.errors.itemPriceInvalid'],
+    [{ itemPriceRupees: '399.50' }, 'requests.errors.itemPriceInvalid'],
+    [{ itemPriceRupees: '0' }, 'requests.errors.itemPriceRange'],
+    [{ itemPriceRupees: '10001' }, 'requests.errors.itemPriceRange'],
   ])('rejects %j with %s', (override, message) => {
     expect(firstError(override)).toBe(message);
   });

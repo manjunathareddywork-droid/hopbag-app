@@ -207,6 +207,28 @@ export function RequestForm({
 
       <Controller
         control={control}
+        name="itemPriceRupees"
+        render={({ field, fieldState }) => (
+          <View style={styles.group}>
+            <TextField
+              label={t('requests.itemPriceLabel')}
+              prefix="₹"
+              placeholder={t('requests.itemPricePlaceholder')}
+              keyboardType="number-pad"
+              value={field.value}
+              onChangeText={field.onChange}
+              onBlur={field.onBlur}
+              error={requestFormError(fieldState.error?.message)}
+            />
+            <Text variant="caption" muted>
+              {t('requests.itemPriceHint')}
+            </Text>
+          </View>
+        )}
+      />
+
+      <Controller
+        control={control}
         name="budgetRupees"
         render={({ field, fieldState }) => (
           <View style={styles.group}>

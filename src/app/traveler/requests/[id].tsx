@@ -85,6 +85,12 @@ export default function TravelerRequestScreen() {
           value={t('requests.route', { from: city(r.from_city_id), to: city(r.to_city_id) })}
         />
         <DetailRow label={t('requests.fields.deadline')} value={formatDate(r.deadline)} />
+        {r.item_price_paise !== null ? (
+          <DetailRow
+            label={t('requests.fields.itemPrice')}
+            value={formatPaise(r.item_price_paise)}
+          />
+        ) : null}
         <DetailRow label={t('requests.fields.budget')} value={formatPaise(r.budget_paise)} />
         {r.details ? <DetailRow label={t('requests.fields.details')} value={r.details} /> : null}
       </View>
