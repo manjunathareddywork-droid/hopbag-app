@@ -62,6 +62,9 @@ Read docs/PRODUCT.md for rules and docs/PHASES.md for the build plan. Work on ON
 - Delivery: deliveries / handover_codes (hashed, one-time, 5 tries) / disputes / payouts. All changes via security definer functions; settle_request is internal and the only place money is released (ledger release: held -> traveler + platform_fee; fee on fare only). auto_confirm_deliveries runs every 15 min via pg_cron.
 - A disputed request can only be settled or refunded by an admin (resolve_dispute_release, or the resolve-dispute-refund Edge Function).
 - Functions that must count failed attempts return a status instead of raising (a raise rolls back the counter).
+- Chat: public.messages, readable/writable only by the requester and chosen traveler (admins read). Phone numbers blocked in offers and in chat until paid (contains_phone_number / src/features/chat/phone.ts must match).
+- Notifications: triggers insert into public.notifications (kind + params, no text). Text lives in src/i18n/en.ts (notifications.kinds) and supabase/functions/_shared/notification-text.ts (push); a test checks both cover every kind. Push is sent by send-notifications (pg_cron + Vault secrets, see docs/NOTIFICATIONS.md) and needs a real build, not Expo Go.
+- Ratings: rate_counterpart after settled, once per person per request; rating_summary for averages.
 - Admin screens (src/app/admin) sit behind Stack.Protected on `is_admin()`; review goes through review_verification / review_trip_ticket functions.
 - Blocked items: patterns in public.blocked_terms are matched as whole words in both Postgres (`\m...\M`) and JS (`\b...\b`); src/__tests__/blocked-terms.test.ts runs the seeded list through the app matcher. Avoid false positives (e.g. "gold" alone blocks Nescafe Gold).
 - Request status changes only through DB functions (cancel_request now; later phases add more). The status trigger enforces the PRODUCT.md lifecycle for everyone.
