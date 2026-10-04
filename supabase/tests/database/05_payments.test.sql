@@ -152,12 +152,15 @@ select is_empty(
      on conflict (event_id) do nothing returning event_id $$,
   'a replayed webhook event is recognised as already seen');
 
+-- As the table owner, so this proves the trigger, not just a missing grant.
+reset role;
 select throws_ok(
   $$ delete from public.ledger_entries $$,
-  'P0001', null, 'ledger entries cannot be deleted');
+  'P0001', null, 'ledger entries cannot be deleted, even by the owner');
 select throws_ok(
   $$ update public.ledger_entries set amount_paise = 1 $$,
-  'P0001', null, 'ledger entries cannot be changed');
+  'P0001', null, 'ledger entries cannot be changed, even by the owner');
+set local role service_role;
 
 -------------------------------------------------------------------------------
 -- Who can see payments

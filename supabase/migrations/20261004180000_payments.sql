@@ -167,7 +167,17 @@ create table public.webhook_events (
 
 alter table public.webhook_events enable row level security;
 revoke all on public.webhook_events from anon, authenticated;
--- No policies: service role only.
+grant select on public.webhook_events to authenticated;
+
+create policy "Admins can read webhook events"
+  on public.webhook_events for select
+  to authenticated
+  using ((select public.is_admin()));
+
+-- Edge Functions (service role) store events and read payments directly; every
+-- other write goes through the security definer functions below.
+grant select, insert, update on public.webhook_events to service_role;
+grant select on public.payments, public.ledger_entries to service_role;
 
 -------------------------------------------------------------------------------
 -- Service-role functions (called by Edge Functions; not callable by clients)
@@ -443,3 +453,65 @@ begin
   return request;
 end;
 $$;
+
+-------------------------------------------------------------------------------
+-- The route feed also returns the item price, so travelers know what they buy.
+-- (Return type changes, so drop and recreate.)
+-------------------------------------------------------------------------------
+drop function public.request_feed(uuid);
+
+create function public.request_feed(p_trip_id uuid)
+returns table (
+  id uuid,
+  requester_id uuid,
+  category_id text,
+  item_name text,
+  details text,
+  weight_grams integer,
+  from_city_id integer,
+  to_city_id integer,
+  deadline date,
+  budget_paise integer,
+  item_price_paise integer,
+  photo_path text,
+  status public.request_status,
+  created_at timestamptz,
+  exact_match boolean,
+  fare_min_paise integer,
+  fare_max_paise integer,
+  my_offer_status public.offer_status
+)
+language sql
+stable
+set search_path = ''
+as $$
+  select
+    r.id, r.requester_id, r.category_id, r.item_name, r.details, r.weight_grams,
+    r.from_city_id, r.to_city_id, r.deadline, r.budget_paise, r.item_price_paise, r.photo_path,
+    r.status,
+    r.created_at,
+    (r.from_city_id = t.from_city_id and r.to_city_id = t.to_city_id) as exact_match,
+    band.min_paise,
+    band.max_paise,
+    (
+      select o.status from public.offers o
+      where o.request_id = r.id and o.traveler_id = (select auth.uid())
+      order by o.created_at desc
+      limit 1
+    )
+  from public.trips t
+  join public.cities tf on tf.id = t.from_city_id
+  join public.cities tt on tt.id = t.to_city_id
+  join public.item_requests r on r.status in ('open', 'offered')
+  join public.cities rf on rf.id = r.from_city_id and rf.state_code = tf.state_code
+  join public.cities rt on rt.id = r.to_city_id and rt.state_code = tt.state_code
+  cross join lateral public.fare_band(r.weight_grams) band
+  where t.id = p_trip_id
+    and t.traveler_id = (select auth.uid())
+    and r.deadline >= t.travel_date
+    and r.requester_id <> (select auth.uid())
+  order by exact_match desc, r.deadline, r.created_at;
+$$;
+
+revoke execute on function public.request_feed(uuid) from public, anon;
+grant execute on function public.request_feed(uuid) to authenticated;
