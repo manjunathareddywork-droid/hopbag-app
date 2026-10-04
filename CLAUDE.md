@@ -45,5 +45,6 @@ Read docs/PRODUCT.md for rules and docs/PHASES.md for the build plan. Work on ON
 - src/lib/database.types.ts is hand-written until a project is linked; then regenerate with `supabase gen types typescript --linked > src/lib/database.types.ts`.
 - Auth routing: src/app/_layout.tsx uses Stack.Protected (signed out / no profile / app). Navigation only; RLS is the real access control.
 - Expo SDK 57. Testing Library v14: `render` and `fireEvent` are async, always await them. Use `renderWithQuery` from src/test-utils.tsx.
+- Read local files (photos, picker/manipulator output) with expo-file-system `new File(uri)`, never `fetch(file://...)`: on Android it can return an error text body without failing.
 - Typed routes: if tsc says a new route path is not assignable, run `npx expo start` once to regenerate .expo/types.
 - Test phone numbers (local config.toml, and add the same in the hosted dashboard): 919000000001 / 919000000002, OTP 123456.
