@@ -29,9 +29,17 @@ export default function HomeScreen() {
           {t('home.tagline')}
         </Text>
       </View>
-      <Link href="/account" asChild>
-        <Button title={t('home.account')} variant="secondary" />
-      </Link>
+      <View style={styles.actions}>
+        <Link href="/requests/new" asChild>
+          <Button title={t('home.newRequest')} />
+        </Link>
+        <Link href="/requests" asChild>
+          <Button title={t('home.myRequests')} variant="secondary" />
+        </Link>
+        <Link href="/account" asChild>
+          <Button title={t('home.account')} variant="secondary" />
+        </Link>
+      </View>
     </Screen>
   );
 }
@@ -47,6 +55,9 @@ const styles = StyleSheet.create({
     width: 130,
     height: 136,
     marginBottom: spacing.md,
+  },
+  actions: {
+    gap: spacing.md,
   },
   tagline: {
     textAlign: 'center',

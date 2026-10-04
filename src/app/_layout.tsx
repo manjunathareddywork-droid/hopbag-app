@@ -90,6 +90,10 @@ function RootNavigator() {
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="account" options={{ title: t('account.title') }} />
         <Stack.Screen name="edit-profile" options={{ title: t('editProfile.title') }} />
+        <Stack.Screen name="requests/index" options={{ title: t('requests.listTitle') }} />
+        <Stack.Screen name="requests/new" options={{ title: t('requests.newTitle') }} />
+        <Stack.Screen name="requests/[id]" options={{ title: t('requests.detailTitle') }} />
+        <Stack.Screen name="not-allowed" options={{ title: t('notAllowed.title') }} />
       </Stack.Protected>
     </Stack>
   );
