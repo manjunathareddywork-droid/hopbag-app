@@ -8,6 +8,7 @@ import {
   HttpError,
   json,
   razorpay,
+  rateLimit,
   readJson,
   requireUser,
   serviceClient,
@@ -24,6 +25,7 @@ Deno.serve(
   handle(async (req) => {
     const db = serviceClient();
     const user = await requireUser(req, db);
+    await rateLimit(db, `verify-payment:${user.id}`, 20, 60);
     const body = await readJson<Body>(req);
 
     const valid = await verifyCheckoutSignature(

@@ -5,6 +5,7 @@ import {
   handle,
   json,
   razorpay,
+  rateLimit,
   readJson,
   requireUser,
   serviceClient,
@@ -21,6 +22,7 @@ Deno.serve(
   handle(async (req) => {
     const db = serviceClient();
     const user = await requireUser(req, db);
+    await rateLimit(db, `refund-payment:${user.id}`, 5, 60);
     const { request_id } = await readJson<{ request_id: string }>(req);
 
     const { data: payment, error } = await db

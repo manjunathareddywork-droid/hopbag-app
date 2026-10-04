@@ -6,6 +6,7 @@ import {
   handle,
   json,
   razorpay,
+  rateLimit,
   readJson,
   requireUser,
   serviceClient,
@@ -22,6 +23,7 @@ Deno.serve(
   handle(async (req) => {
     const db = serviceClient();
     const user = await requireUser(req, db);
+    await rateLimit(db, `resolve-dispute-refund:${user.id}`, 10, 60);
     const { request_id, note } = await readJson<{ request_id: string; note?: string }>(req);
 
     // Checks the caller is an admin and the request has an open dispute.

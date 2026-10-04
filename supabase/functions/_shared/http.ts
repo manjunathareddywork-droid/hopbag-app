@@ -39,11 +39,23 @@ export function json(body: unknown, status = 200): Response {
   });
 }
 
-/** Turns a Postgres error from an RPC into an HttpError with the same code. */
+/**
+ * Turns a Postgres error from an RPC into an HttpError. Only our own rule errors
+ * (HBxxx) pass their code and details to the app; anything else is logged here
+ * and returned as a generic error, so database internals never reach clients.
+ */
 export function dbError(error: { code?: string; details?: string | null; message?: string }) {
-  const code = error.code ?? 'db_error';
-  const status = code === 'HB011' ? 404 : code.startsWith('HB') ? 409 : 500;
-  return new HttpError(status, code, error.details ?? null);
+  const code = error.code ?? '';
+  if (/^HB\d{3}$/.test(code)) {
+    return new HttpError(
+      code === 'HB011' ? 404 : code === 'HB032' ? 429 : 409,
+      code,
+      error.details ?? null,
+    );
+  }
+  if (code === '22P02') return new HttpError(400, 'bad_request'); // malformed id
+  console.error('Database error', code, error.message);
+  return new HttpError(500, 'internal_error');
 }
 
 /** The signed-in user calling this function (verified by Supabase Auth). */
@@ -53,6 +65,25 @@ export async function requireUser(req: Request, db: SupabaseClient): Promise<{ i
   const { data, error } = await db.auth.getUser(token);
   if (error || !data.user) throw new HttpError(401, 'unauthorized');
   return { id: data.user.id };
+}
+
+/**
+ * Per-user limit for this function (fixed window, counted in public.rate_limits).
+ * Over the limit -> 429 with code HB032, which the app explains.
+ */
+export async function rateLimit(
+  db: SupabaseClient,
+  key: string,
+  limit: number,
+  windowSeconds: number,
+): Promise<void> {
+  const { data, error } = await db.rpc('hit_rate_limit', {
+    p_key: key,
+    p_limit: limit,
+    p_window_seconds: windowSeconds,
+  });
+  if (error) throw error;
+  if (data !== true) throw new HttpError(429, 'HB032');
 }
 
 export async function readJson<T>(req: Request): Promise<T> {
