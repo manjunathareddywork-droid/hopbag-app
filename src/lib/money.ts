@@ -7,7 +7,7 @@ export function rupeesToPaise(input: string): number | null {
   return Number(cleaned) * 100;
 }
 
-/** 12345650 -> "₹1,23,456.50"; 120000 -> "₹1,200" (Indian digit grouping). */
+/** 12345650 -> "Rs 1,23,456.50"; 120000 -> "Rs 1,200" (Indian digit grouping, as in the designs). */
 export function formatPaise(paise: number): string {
   const rupees = Math.floor(paise / 100);
   const rest = paise % 100;
@@ -15,5 +15,5 @@ export function formatPaise(paise: number): string {
   const last3 = digits.slice(-3);
   const head = digits.slice(0, -3).replace(/\B(?=(\d{2})+(?!\d))/g, ',');
   const grouped = head ? `${head},${last3}` : last3;
-  return `₹${grouped}${rest ? `.${String(rest).padStart(2, '0')}` : ''}`;
+  return `Rs ${grouped}${rest ? `.${String(rest).padStart(2, '0')}` : ''}`;
 }

@@ -17,3 +17,11 @@ export function formatGrams(grams: number): string {
     .replace(/0+$/, '');
   return fraction ? `${kg}.${fraction} kg` : `${kg} kg`;
 }
+
+/** 4500 -> "4.5", 500 -> "0.5", 5000 -> "5": kilograms as people type them. */
+export function gramsToKg(grams: number): string {
+  const rest = String(grams % 1000)
+    .padStart(3, '0')
+    .replace(/0+$/, '');
+  return rest ? `${Math.floor(grams / 1000)}.${rest}` : String(Math.floor(grams / 1000));
+}

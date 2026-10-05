@@ -44,7 +44,7 @@ describe('notification wording', () => {
         kind: 'offer_received',
         params: { name: 'Bala', amount: 25000, item: 'Mysore Pak' },
       }).body,
-    ).toBe('Bala offered ₹250 to carry Mysore Pak.');
+    ).toBe('Bala offered Rs 250 to carry Mysore Pak.');
   });
 
   it('push and app format rupees the same way', () => {

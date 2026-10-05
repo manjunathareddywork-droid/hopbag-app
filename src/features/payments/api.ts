@@ -9,6 +9,7 @@ export type CheckoutOrder = {
   amount_paise: number;
   item_price_paise: number;
   fare_paise: number;
+  fee_paise: number;
   item_name: string;
 };
 

@@ -1,5 +1,4 @@
-import { fareBand } from '@/features/offers/fare';
-import { validateFare } from '@/features/offers/offer-form';
+import { fareBand, validateFare } from '@/features/offers/fare';
 
 const settings = {
   fare_min_per_kg_paise: 10000,
@@ -33,8 +32,8 @@ describe('validateFare', () => {
   });
 
   it('rejects fares outside the band with the band in the message', () => {
-    expect(validateFare('99', 10000, 50000)).toBe('Choose a fare between ₹100 and ₹500.');
-    expect(validateFare('501', 10000, 50000)).toBe('Choose a fare between ₹100 and ₹500.');
+    expect(validateFare('99', 10000, 50000)).toBe('Choose a fare between Rs 100 and Rs 500.');
+    expect(validateFare('501', 10000, 50000)).toBe('Choose a fare between Rs 100 and Rs 500.');
   });
 
   it('rejects text that is not a whole rupee amount', () => {

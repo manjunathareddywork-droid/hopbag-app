@@ -5,9 +5,10 @@ const order: CheckoutOrder = {
   order_id: 'order_1',
   key_id: 'rzp_test_abc',
   currency: 'INR',
-  amount_paise: 60000,
+  amount_paise: 62000,
   item_price_paise: 40000,
   fare_paise: 20000,
+  fee_paise: 2000,
   item_name: 'Mysore Pak',
 };
 
@@ -17,7 +18,7 @@ describe('checkoutHtml', () => {
     expect(html).toContain('https://checkout.razorpay.com/v1/checkout.js');
     expect(html).toContain('"key":"rzp_test_abc"');
     expect(html).toContain('"order_id":"order_1"');
-    expect(html).toContain('"amount":60000');
+    expect(html).toContain('"amount":62000');
     expect(html).toContain('"contact":"+919000000001"');
     expect(html).not.toMatch(/secret/i);
   });

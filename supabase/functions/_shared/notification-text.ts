@@ -12,14 +12,14 @@ export type NotificationParams = {
   stars?: number;
 };
 
-/** 120000 -> "₹1,200", 12345650 -> "₹1,23,456.50" (Indian grouping, no floats). */
+/** 120000 -> "Rs 1,200", 12345650 -> "Rs 1,23,456.50" (Indian grouping, no floats). */
 export function formatRupees(paise: number): string {
   const rupees = Math.floor(paise / 100);
   const rest = paise % 100;
   const digits = String(rupees);
   const last3 = digits.slice(-3);
   const head = digits.slice(0, -3).replace(/\B(?=(\d{2})+(?!\d))/g, ',');
-  return `₹${head ? `${head},${last3}` : last3}${rest ? `.${String(rest).padStart(2, '0')}` : ''}`;
+  return `Rs ${head ? `${head},${last3}` : last3}${rest ? `.${String(rest).padStart(2, '0')}` : ''}`;
 }
 
 export function renderNotification(
@@ -86,6 +86,16 @@ export function renderNotification(
       return { title: 'Ticket approved', body: 'You can now offer to carry items on this trip.' };
     case 'ticket_rejected':
       return { title: 'Ticket not accepted', body: p.reason ?? 'Please send a new ticket photo.' };
+    case 'route_request':
+      return {
+        title: 'New request on your route',
+        body: `Someone needs ${item}. Send an offer if you can carry it.`,
+      };
+    case 'pickup_declined':
+      return {
+        title: `${p.name ?? 'The traveler'} declined your item`,
+        body: `${p.reason ?? ''} Your payment for ${item} is being refunded in full.`.trim(),
+      };
     default:
       return { title: 'Hopbag', body: 'You have an update.' };
   }

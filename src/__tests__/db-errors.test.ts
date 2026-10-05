@@ -44,7 +44,7 @@ describe('dbErrorMessage', () => {
 
   it('shows the fare band from the database', () => {
     expect(dbErrorMessage({ code: 'HB015', details: '10000,50000' }, 'offers.sendFailed')).toBe(
-      'Choose a fare between ₹100 and ₹500.',
+      'Choose a fare between Rs 100 and Rs 500.',
     );
   });
 

@@ -76,6 +76,8 @@ type PaymentRow = {
   traveler_id: string;
   item_price_paise: number;
   fare_paise: number;
+  /** Hopbag fee, paid by the requester on top of item price and fare. */
+  fee_paise: number;
   amount_paise: number;
   currency: 'INR';
   razorpay_order_id: string;
@@ -104,11 +106,15 @@ type DeliveryRow = {
   settled_by: 'code' | 'requester' | 'auto' | 'admin' | null;
 };
 
+export type DisputeCategory = 'damaged' | 'not_as_described' | 'not_responding' | 'other';
+
 type DisputeRow = {
   id: string;
   request_id: string;
   raised_by: string;
   reason: string;
+  category: DisputeCategory;
+  photo_paths: string[];
   status: DisputeStatus;
   resolution: 'released' | 'refunded' | null;
   resolution_note: string | null;
@@ -147,7 +153,9 @@ export type NotificationKind =
   | 'id_approved'
   | 'id_rejected'
   | 'ticket_approved'
-  | 'ticket_rejected';
+  | 'ticket_rejected'
+  | 'route_request'
+  | 'pickup_declined';
 
 export type NotificationParams = {
   item?: string;
@@ -165,6 +173,9 @@ type MessageRow = {
   request_id: string;
   sender_id: string;
   body: string;
+  photo_path: string | null;
+  /** Set when the photo file was removed (7 days after the request finished). */
+  photo_deleted_at: string | null;
   created_at: string;
 };
 
@@ -187,7 +198,38 @@ type RatingRow = {
   ratee_id: string;
   stars: number;
   comment: string;
+  tags: RatingTag[];
   created_at: string;
+};
+
+export type RatingTag = 'on_time' | 'great_shape' | 'easy_to_talk' | 'clear_details' | 'friendly';
+export type Intent = 'get' | 'carry' | 'both';
+
+/** A row from upcoming_trips(): safe fields only (no PNR or ticket). */
+export type UpcomingTrip = {
+  trip_id: string;
+  traveler_id: string;
+  traveler_name: string;
+  from_city_id: number;
+  to_city_id: number;
+  travel_date: string;
+  mode: TravelMode;
+  free_grams: number;
+  free_items: number;
+};
+
+export type ProfileStats = {
+  user_id: string;
+  display_name: string;
+  full_name: string;
+  home_city_id: number | null;
+  joined_at: string;
+  verified: boolean;
+  rating: number | null;
+  ratings: number;
+  deliveries: number;
+  requests: number;
+  disputes: number;
 };
 
 export type ReportCategory = 'fraud' | 'abuse' | 'no_show' | 'prohibited_item' | 'other';
@@ -269,6 +311,9 @@ export type Database = {
           avatar_path: string | null;
           /** Set by an admin approving the traveler's ID; shown as the verified badge. */
           traveler_verified_at: string | null;
+          intent: Intent;
+          push_enabled: boolean;
+          offer_alerts: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -277,11 +322,15 @@ export type Database = {
           full_name: string;
           home_city_id: number;
           avatar_path?: string | null;
+          intent?: Intent;
         };
         Update: {
           full_name?: string;
           home_city_id?: number;
           avatar_path?: string | null;
+          intent?: Intent;
+          push_enabled?: boolean;
+          offer_alerts?: boolean;
         };
         Relationships: [];
       };
@@ -438,7 +487,7 @@ export type Database = {
       };
       messages: {
         Row: MessageRow;
-        Insert: { request_id: string; body: string };
+        Insert: { request_id: string; body: string; photo_path?: string | null };
         Update: never;
         Relationships: [];
       };
@@ -481,6 +530,35 @@ export type Database = {
       offers: {
         Row: OfferRow;
         Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      pickup_declines: {
+        Row: { request_id: string; traveler_id: string; reason: string; created_at: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      support_messages: {
+        Row: {
+          id: string;
+          user_id: string;
+          body: string;
+          status: 'open' | 'answered';
+          created_at: string;
+        };
+        Insert: { body: string };
+        Update: never;
+        Relationships: [];
+      };
+      account_deletion_requests: {
+        Row: {
+          user_id: string;
+          status: 'pending' | 'done' | 'refused';
+          admin_note: string | null;
+          created_at: string;
+        };
+        Insert: { user_id?: string };
         Update: never;
         Relationships: [];
       };
@@ -552,7 +630,12 @@ export type Database = {
         Returns: undefined;
       };
       raise_dispute: {
-        Args: { p_request_id: string; p_reason: string };
+        Args: {
+          p_request_id: string;
+          p_reason: string;
+          p_category?: DisputeCategory;
+          p_photo_paths?: string[];
+        };
         Returns: DisputeRow;
       };
       resolve_dispute_release: {
@@ -564,7 +647,7 @@ export type Database = {
         Returns: undefined;
       };
       rate_counterpart: {
-        Args: { p_request_id: string; p_stars: number; p_comment?: string };
+        Args: { p_request_id: string; p_stars: number; p_comment?: string; p_tags?: RatingTag[] };
         Returns: RatingRow;
       };
       rating_summary: {
@@ -597,6 +680,26 @@ export type Database = {
           users: number;
           last_seen: string;
         }[];
+      };
+      upcoming_trips: {
+        Args: { p_to_state?: string };
+        Returns: UpcomingTrip[];
+      };
+      profile_stats: {
+        Args: { p_user_id: string };
+        Returns: ProfileStats[];
+      };
+      display_name: {
+        Args: { p_user_id: string };
+        Returns: string;
+      };
+      counterpart_phone: {
+        Args: { p_request_id: string };
+        Returns: string | null;
+      };
+      platform_fee: {
+        Args: { p_fare_paise: number };
+        Returns: number;
       };
       request_traveler: {
         Args: { p_request_id: string };
