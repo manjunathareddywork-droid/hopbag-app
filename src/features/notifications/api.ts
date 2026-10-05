@@ -12,6 +12,18 @@ export async function fetchNotifications(userId: string): Promise<AppNotificatio
   return data;
 }
 
+/** Opening a chat reads its message notifications. */
+export async function markChatRead(userId: string, requestId: string): Promise<void> {
+  const { error } = await supabase
+    .from('notifications')
+    .update({ read_at: new Date().toISOString() })
+    .eq('user_id', userId)
+    .eq('request_id', requestId)
+    .eq('kind', 'message')
+    .is('read_at', null);
+  if (error) throw error;
+}
+
 export async function markAllRead(userId: string): Promise<void> {
   const { error } = await supabase
     .from('notifications')

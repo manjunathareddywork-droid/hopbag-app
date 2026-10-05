@@ -16,6 +16,8 @@ export const profileFormSchema = z.object({
   homeCityId: z.string().regex(/^\d+$/, msg('profile.errors.cityRequired')),
   /** Local file URI of a newly picked photo; null keeps the current one. */
   photoUri: z.string().nullable(),
+  /** "I want to": get items, carry items or both. Only shapes what the app shows first. */
+  intent: z.enum(['get', 'carry', 'both']),
 });
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>;

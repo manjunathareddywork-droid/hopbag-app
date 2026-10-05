@@ -1,4 +1,4 @@
-import type { Rating } from '@/lib/database.types';
+import type { Rating, RatingTag } from '@/lib/database.types';
 import { supabase } from '@/lib/supabase';
 
 export type RatingSummary = { user_id: string; average: number; count: number };
@@ -26,11 +26,13 @@ export async function rateCounterpart(input: {
   requestId: string;
   stars: number;
   comment: string;
+  tags?: RatingTag[];
 }) {
   const { data, error } = await supabase.rpc('rate_counterpart', {
     p_request_id: input.requestId,
     p_stars: input.stars,
     p_comment: input.comment,
+    p_tags: input.tags ?? [],
   });
   if (error) throw error;
   return data;

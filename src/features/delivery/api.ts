@@ -1,4 +1,4 @@
-import type { Delivery, Dispute, Payout } from '@/lib/database.types';
+import type { Delivery, Dispute, DisputeCategory, Payout } from '@/lib/database.types';
 import { callFunction } from '@/lib/functions';
 import { prepareJpeg } from '@/lib/images';
 import { supabase } from '@/lib/supabase';
@@ -98,13 +98,38 @@ export async function confirmReceived(requestId: string) {
   if (error) throw error;
 }
 
-export async function raiseDispute(input: { requestId: string; reason: string }) {
+export async function raiseDispute(input: {
+  requestId: string;
+  reason: string;
+  category?: DisputeCategory;
+  userId?: string;
+  photoUris?: string[];
+}) {
+  const photoPaths: string[] = [];
+  for (const [i, uri] of (input.photoUris ?? []).entries()) {
+    const bytes = await prepareJpeg(uri, 1280);
+    const path = `${input.userId}/${input.requestId}-${Date.now()}-${i}.jpg`;
+    const upload = await supabase.storage
+      .from('dispute-photos')
+      .upload(path, bytes, { contentType: 'image/jpeg' });
+    if (upload.error) throw upload.error;
+    photoPaths.push(path);
+  }
   const { error } = await supabase.rpc('raise_dispute', {
     p_request_id: input.requestId,
     p_reason: input.reason,
+    p_category: input.category ?? 'other',
+    p_photo_paths: photoPaths,
   });
   if (error) throw error;
 }
+
+/** Traveler refuses the item at pickup; the requester is refunded in full (Edge Function). */
+export const declinePickup = (input: { requestId: string; reason: string }) =>
+  callFunction<{ status: 'refunded' | 'refund_pending' }>('decline-pickup', {
+    request_id: input.requestId,
+    reason: input.reason,
+  });
 
 export async function resolveRelease(input: { requestId: string; note: string }) {
   const { error } = await supabase.rpc('resolve_dispute_release', {

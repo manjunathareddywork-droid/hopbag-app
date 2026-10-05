@@ -10,6 +10,7 @@ import {
   fetchMyVerification,
   fetchSettings,
   fetchTrip,
+  fetchUpcomingTrips,
   getDocumentUrl,
   resubmitTicket,
   submitVerification,
@@ -40,6 +41,15 @@ export function useMyVerification() {
   return useQuery({
     queryKey: travelerKeys.verification(userId),
     queryFn: () => fetchMyVerification(userId),
+    enabled: !!userId,
+  });
+}
+
+export function useUpcomingTrips() {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: ['trips', 'upcoming', userId],
+    queryFn: fetchUpcomingTrips,
     enabled: !!userId,
   });
 }

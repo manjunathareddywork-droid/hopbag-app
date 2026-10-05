@@ -6,6 +6,7 @@ import { track } from '@/lib/monitoring';
 import {
   confirmDeliveryCode,
   confirmReceived,
+  declinePickup,
   fetchDelivery,
   fetchDispute,
   fetchMyPayouts,
@@ -99,6 +100,12 @@ export const useConfirmDeliveryCode = () =>
   );
 export const useMarkHandedOver = () => useDeliveryMutation(markHandedOver);
 export const useConfirmReceived = () => useDeliveryMutation(confirmReceived);
-export const useRaiseDispute = () => useDeliveryMutation(raiseDispute);
+export function useRaiseDispute() {
+  const userId = useSession().session?.user.id ?? '';
+  return useDeliveryMutation((input: Parameters<typeof raiseDispute>[0]) =>
+    raiseDispute({ userId, ...input }),
+  );
+}
+export const useDeclinePickup = () => useDeliveryMutation(declinePickup);
 export const useResolveRelease = () => useDeliveryMutation(resolveRelease);
 export const useResolveRefund = () => useDeliveryMutation(resolveRefund);

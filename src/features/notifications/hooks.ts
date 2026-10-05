@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useSession } from '@/features/auth/session';
 import { supabase } from '@/lib/supabase';
 
-import { fetchNotifications, markAllRead } from './api';
+import { fetchNotifications, markAllRead, markChatRead } from './api';
 
 export const notificationKeys = {
   list: (userId: string) => ['notifications', userId] as const,
@@ -38,6 +38,7 @@ export function useNotifications() {
           queryClient.invalidateQueries({ queryKey: ['requests'] });
           queryClient.invalidateQueries({ queryKey: ['offers'] });
           queryClient.invalidateQueries({ queryKey: ['delivery'] });
+          queryClient.invalidateQueries({ queryKey: ['chat', 'recent'] });
         },
       )
       .subscribe();
@@ -52,6 +53,15 @@ export function useNotifications() {
 export function useUnreadCount(): number {
   const { data } = useNotifications();
   return (data ?? []).filter((n) => n.read_at === null).length;
+}
+
+export function useMarkChatRead() {
+  const userId = useSession().session?.user.id ?? '';
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (requestId: string) => markChatRead(userId, requestId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: notificationKeys.list(userId) }),
+  });
 }
 
 export function useMarkAllRead() {

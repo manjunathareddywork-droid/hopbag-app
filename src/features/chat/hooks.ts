@@ -4,11 +4,49 @@ import { useEffect } from 'react';
 import type { Message } from '@/lib/database.types';
 import { supabase } from '@/lib/supabase';
 
-import { fetchMessages, sendMessage } from './api';
+import { useSession } from '@/features/auth/session';
+
+import {
+  fetchCounterpartPhone,
+  fetchMessages,
+  fetchRecentMessages,
+  getChatPhotoUrl,
+  sendMessage,
+} from './api';
 
 export const chatKeys = {
   messages: (requestId: string) => ['chat', requestId] as const,
+  recent: (userId: string) => ['chat', 'recent', userId] as const,
+  phone: (requestId: string) => ['chat', 'phone', requestId] as const,
+  photo: (path: string) => ['chat', 'photo', path] as const,
 };
+
+export function useRecentMessages() {
+  const userId = useSession().session?.user.id ?? '';
+  return useQuery({
+    queryKey: chatKeys.recent(userId),
+    queryFn: fetchRecentMessages,
+    enabled: !!userId,
+  });
+}
+
+export function useCounterpartPhone(requestId: string, enabled = true) {
+  return useQuery({
+    queryKey: chatKeys.phone(requestId),
+    queryFn: () => fetchCounterpartPhone(requestId),
+    enabled,
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+export function useChatPhotoUrl(path: string | null | undefined) {
+  return useQuery({
+    queryKey: chatKeys.photo(path ?? 'none'),
+    queryFn: () => getChatPhotoUrl(path!),
+    enabled: !!path,
+    staleTime: 45 * 60 * 1000,
+  });
+}
 
 /** Adds a message once, keeping order by id (Realtime and the send response can both deliver it). */
 export function mergeMessage(list: Message[] | undefined, message: Message): Message[] {
@@ -53,11 +91,17 @@ export function useChat(requestId: string) {
 
 export function useSendMessage(requestId: string) {
   const queryClient = useQueryClient();
+  const userId = useSession().session?.user.id;
   return useMutation({
-    mutationFn: (body: string) => sendMessage({ requestId, body }),
-    onSuccess: (message) =>
+    mutationFn: (input: string | { body: string; photoUri?: string | null }) =>
+      typeof input === 'string'
+        ? sendMessage({ requestId, body: input })
+        : sendMessage({ requestId, userId, ...input }),
+    onSuccess: (message) => {
       queryClient.setQueryData<Message[]>(chatKeys.messages(requestId), (list) =>
         mergeMessage(list, message),
-      ),
+      );
+      queryClient.invalidateQueries({ queryKey: ['chat', 'recent'] });
+    },
   });
 }

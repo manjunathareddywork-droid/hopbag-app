@@ -1,5 +1,6 @@
 import type {
   AppSetting,
+  UpcomingTrip,
   IdDocumentType,
   Trip,
   TripInsert,
@@ -64,6 +65,13 @@ export async function submitVerification(
     .insert({ id_type: idType, id_photo_path: path })
     .select()
     .single();
+  if (error) throw error;
+  return data;
+}
+
+/** Verified upcoming trips into the caller's home state (safe fields only). */
+export async function fetchUpcomingTrips(): Promise<UpcomingTrip[]> {
+  const { data, error } = await supabase.rpc('upcoming_trips', {});
   if (error) throw error;
   return data;
 }

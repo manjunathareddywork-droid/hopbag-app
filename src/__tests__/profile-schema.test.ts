@@ -1,6 +1,6 @@
 import { profileFormSchema } from '@/features/profile/schema';
 
-const valid = { fullName: 'Asha Rao', homeCityId: '12', photoUri: null };
+const valid = { fullName: 'Asha Rao', homeCityId: '12', photoUri: null, intent: 'get' as const };
 
 describe('profileFormSchema', () => {
   it('accepts a valid profile and trims the name', () => {

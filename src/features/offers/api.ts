@@ -19,6 +19,18 @@ export async function fetchOffersForRequest(requestId: string): Promise<Offer[]>
   return data;
 }
 
+/** Offers on several of the requester's requests at once (for the requests list). */
+export async function fetchOffersForRequests(requestIds: string[]): Promise<Offer[]> {
+  if (requestIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from('offers')
+    .select('*')
+    .in('request_id', requestIds)
+    .in('status', ['pending', 'accepted']);
+  if (error) throw error;
+  return data;
+}
+
 export async function fetchMyOffers(userId: string): Promise<Offer[]> {
   const { data, error } = await supabase
     .from('offers')

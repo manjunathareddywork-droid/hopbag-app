@@ -9,6 +9,7 @@ import {
   fetchFeed,
   fetchMyOffers,
   fetchOffersForRequest,
+  fetchOffersForRequests,
   fetchRequestsByIds,
   makeOffer,
   withdrawOffer,
@@ -33,6 +34,15 @@ export function useOffersForRequest(requestId: string) {
   return useQuery({
     queryKey: offerKeys.forRequest(requestId),
     queryFn: () => fetchOffersForRequest(requestId),
+  });
+}
+
+export function useOffersForRequests(requestIds: string[]) {
+  const sorted = [...new Set(requestIds)].sort();
+  return useQuery({
+    queryKey: ['offers', 'requests-list', ...sorted],
+    queryFn: () => fetchOffersForRequests(sorted),
+    enabled: sorted.length > 0,
   });
 }
 

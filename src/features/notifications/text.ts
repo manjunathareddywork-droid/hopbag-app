@@ -35,6 +35,7 @@ export function notificationText(n: Pick<AppNotification, 'kind' | 'params'>): {
 /** Kinds that are about the requester's own request (others: the traveler's side). */
 const REQUESTER_KINDS: NotificationKind[] = [
   'offer_received',
+  'pickup_declined',
   'picked_up',
   'handed_over',
   'completed',
@@ -50,11 +51,16 @@ export function notificationRoute(
   if (n.kind === 'message' && n.request_id) {
     return { pathname: '/chat/[requestId]', params: { requestId: n.request_id } };
   }
-  if (n.kind === 'id_approved' || n.kind === 'id_rejected') return '/traveler';
+  if (n.kind === 'id_approved' || n.kind === 'id_rejected') return '/traveler/status';
+  if (n.kind === 'route_request' && n.request_id) {
+    return n.trip_id
+      ? { pathname: '/traveler/requests/[id]', params: { id: n.request_id, tripId: n.trip_id } }
+      : '/trips';
+  }
   if ((n.kind === 'ticket_approved' || n.kind === 'ticket_rejected') && n.trip_id) {
     return { pathname: '/traveler/trips/[id]', params: { id: n.trip_id } };
   }
-  if (!n.request_id) return '/';
+  if (!n.request_id) return '/updates';
   const asRequester =
     REQUESTER_KINDS.includes(n.kind) ||
     (SHARED_KINDS.includes(n.kind) && myRequestIds.includes(n.request_id));

@@ -49,6 +49,7 @@ describe('ProfileForm', () => {
     await fireEvent.press(screen.getByLabelText(en.profile.cityLabel));
     await fireEvent.changeText(screen.getByLabelText('Search'), 'secunderabad');
     await fireEvent.press(screen.getByText('Hyderabad, Telangana'));
+    await fireEvent.press(screen.getByText(en.setup.intents.both));
     await fireEvent.press(screen.getByText('Continue'));
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalled());
@@ -56,6 +57,7 @@ describe('ProfileForm', () => {
       fullName: 'Bala Reddy',
       homeCityId: '9',
       photoUri: null,
+      intent: 'both',
     });
   });
 
@@ -65,6 +67,7 @@ describe('ProfileForm', () => {
     await renderForm(onSubmit, legacy);
 
     expect(screen.getByDisplayValue('Manjunatha Reddy')).toBeTruthy();
+    expect(screen.getByText(en.setup.addPhoto)).toBeTruthy();
     await fireEvent.press(screen.getByText('Continue'));
     expect(await screen.findByText(en.profile.errors.cityRequired)).toBeTruthy();
   });
