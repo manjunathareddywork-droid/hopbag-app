@@ -36,14 +36,36 @@ Store it as a function secret:
 supabase secrets set NOTIFICATIONS_CRON_SECRET=<the secret>
 ```
 
-Then, in the Supabase dashboard → SQL editor, run this once with your own values. It stores the URL and secret in Vault, so the cron job can call the function:
+Then, in the Supabase dashboard → SQL editor, run this with your own values. It stores the URL and secret in Vault, so the cron jobs (push notifications and the daily chat-photo cleanup) can call the functions. It creates each secret if it is missing and updates it if it exists, so it is safe to run again (for example after changing the secret):
 
 ```sql
-select vault.create_secret('https://<project-ref>.supabase.co', 'project_url');
-select vault.create_secret('<the same secret>', 'notifications_cron_secret');
+do $$
+declare
+  s record;
+begin
+  for s in
+    select * from (values
+      ('project_url', 'https://<project-ref>.supabase.co'),
+      ('notifications_cron_secret', '<the same secret>')
+    ) as v(name, value)
+  loop
+    if exists (select 1 from vault.secrets where name = s.name) then
+      perform vault.update_secret((select id from vault.secrets where name = s.name), s.value);
+    else
+      perform vault.create_secret(s.value, s.name);
+    end if;
+  end loop;
+end $$;
 ```
 
-Until both Vault secrets exist, the cron job does nothing. Notifications still show in the app.
+Check (shows names only, not values):
+
+```sql
+select name, updated_at from vault.secrets
+where name in ('project_url', 'notifications_cron_secret');
+```
+
+Until both Vault secrets exist, the cron jobs do nothing. Notifications still show in the app.
 
 ### 2. Deploy the function
 
