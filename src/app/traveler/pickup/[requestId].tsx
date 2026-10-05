@@ -21,7 +21,7 @@ import { formatGrams } from '@/features/requests/weight';
 import { t } from '@/i18n';
 import { dbErrorMessage } from '@/lib/db-errors';
 import { pickImage, takePhoto } from '@/lib/images';
-import { colors, radius, spacing } from '@/theme';
+import { radius, spacing } from '@/theme';
 
 /** Before carrying: check the item, photograph it, or decline (full refund to the requester). */
 export default function PickupScreen() {
