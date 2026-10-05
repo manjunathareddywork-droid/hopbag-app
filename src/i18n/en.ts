@@ -48,7 +48,7 @@ export const en = {
   profile: {
     nameLabel: 'Full name',
     namePlaceholder: 'Your name',
-    cityLabel: 'Home city or town',
+    cityLabel: 'Home city',
     cityPlaceholder: 'Choose your city',
     cityHint: 'Pick the nearest city if yours is not listed.',
     addPhoto: 'Add a photo',
@@ -89,10 +89,10 @@ export const en = {
     citySearch: 'Type a city name',
     deadlineLabel: 'Needed by',
     deadlinePlaceholder: 'Choose a date',
-    itemPriceLabel: 'Item price at the shop (₹)',
+    itemPriceLabel: 'Item price at the shop (Rs)',
     itemPricePlaceholder: 'For example, 400',
     itemPriceHint: 'The traveler buys it for you with this amount. You pay it with the fee.',
-    budgetLabel: 'What you will pay the traveler (₹)',
+    budgetLabel: 'What you will pay the traveler (Rs)',
     budgetPlaceholder: 'For example, 500',
     budgetHint:
       'Your fee to the traveler. Your payment is held by Razorpay until the item reaches you.',
@@ -108,7 +108,7 @@ export const en = {
     cancelYes: 'Yes, cancel it',
     keep: 'Keep it',
     cancelFailed: 'Could not cancel the request. Please try again.',
-    route: '{{from}} → {{to}}',
+    route: '{{from}} to {{to}}',
     fields: {
       category: 'Category',
       weight: 'Weight',
@@ -132,9 +132,9 @@ export const en = {
       deadlineRequired: 'Choose a date.',
       deadlineRange: 'Choose a date between tomorrow and 20 days from today.',
       itemPriceInvalid: 'Enter the price in rupees, for example 400',
-      itemPriceRange: 'Enter a price between ₹1 and ₹10,000.',
+      itemPriceRange: 'Enter a price between Rs 1 and Rs 10,000.',
       budgetInvalid: 'Enter an amount in rupees, for example 500',
-      budgetRange: 'Enter an amount between ₹50 and ₹10,000.',
+      budgetRange: 'Enter an amount between Rs 50 and Rs 10,000.',
       blocked: 'This item cannot be carried on Hopbag. {{reason}}',
       categoryNotAllowed: 'This kind of item is not allowed any more. Choose another category.',
     },
@@ -187,7 +187,7 @@ export const en = {
     dry_fruits: { name: 'Dry fruits and nuts', description: 'Cashews, almonds, raisins, dates.' },
     books: { name: 'Books and stationery', description: 'Books, notebooks, pens, art supplies.' },
     clothes: {
-      name: 'Clothes and textiles',
+      name: 'Clothes and fabric',
       description: 'Sarees, dress materials, clothes, shawls.',
     },
     handicrafts: {
@@ -195,7 +195,7 @@ export const en = {
       description: 'Small handicrafts, wooden toys, decor items.',
     },
     cosmetics: {
-      name: 'Cosmetics and personal care',
+      name: 'Beauty and care',
       description: 'Creams, soaps, small bottles. No sprays or aerosols.',
     },
     toys: { name: 'Toys and games', description: 'Toys and board games without batteries.' },
@@ -309,7 +309,7 @@ export const en = {
     ticketTip: 'Your name, date and route must be readable.',
     submit: 'Add trip',
     submitFailed: 'Could not add your trip. Please try again.',
-    route: '{{from}} → {{to}}',
+    route: '{{from}} to {{to}}',
     capacityValue: '{{weight}}, up to {{items}} items',
     ticket: 'Ticket',
     ticketRejected: 'Ticket not accepted: {{reason}}',
@@ -364,7 +364,7 @@ export const en = {
     neededBy: 'Needed by {{date}}',
     budget: 'Requester offers {{amount}}',
     fareRange: 'Fare {{min}} to {{max}}',
-    fareLabel: 'Your fare (₹)',
+    fareLabel: 'Your fare (Rs)',
     fareHint: 'Between {{min}} and {{max}} for this item.',
     fareInvalid: 'Enter an amount in rupees, for example 250',
     fareOutOfBand: 'Choose a fare between {{min}} and {{max}}.',
@@ -486,7 +486,7 @@ export const en = {
       'Mark as handed over without a code? The requester has 48 hours to confirm or report a problem before you are paid.',
     handoverYes: 'Yes, I handed it over',
     waitingConfirm: 'Handed over. Waiting for the requester to confirm (by {{deadline}}).',
-    paidOut: 'Done. {{amount}} unlocked for you (after a {{fee}} Hopbag fee).',
+    paidOut: 'Done. {{amount}} unlocked for you.',
     payoutNote: 'Bank transfers start when payouts go live. This is test mode.',
     actionFailed: 'Could not update the delivery. Please try again.',
     underReview: 'Under review: {{reason}}',
@@ -594,6 +594,14 @@ export const en = {
         body: 'You can now offer to carry items on this trip.',
       },
       ticket_rejected: { title: 'Ticket not accepted', body: '{{reason}}' },
+      route_request: {
+        title: 'New request on your route',
+        body: 'Someone needs {{item}}. Send an offer if you can carry it.',
+      },
+      pickup_declined: {
+        title: '{{name}} declined your item',
+        body: '{{reason}} Your payment for {{item}} is being refunded in full.',
+      },
     },
   },
   ratings: {
@@ -652,9 +660,9 @@ export const en = {
     agree: 'By continuing you agree to the Terms of use and Privacy policy.',
     draftNotice: 'DRAFT for testing only. This text will be replaced after legal review.',
     privacyBody:
-      'Hopbag collects your mobile number (to sign you in), your name, home city and photo (shown to other users), ID photos and tickets (seen only by Hopbag admins, to verify travelers), the requests, trips, offers, chats and ratings you create, and payment records from Razorpay (we never see or store card or UPI details). We also record app errors and anonymous usage events to fix problems and improve the app. We do not sell your data. You can ask us to delete your account and data. How long each kind of data is kept is being finalised with our lawyer.',
+      'Hopbag collects your mobile number (to sign you in), your name, home city and photo (shown to other users), ID photos and tickets (seen only by Hopbag admins, to verify travelers), the requests, trips, offers, chats and ratings you create, and payment records from Razorpay (we never see or store card or UPI details). We also record app errors and anonymous usage events to fix problems and improve the app. We do not sell your data. You can ask us to delete your account and data from Settings. Photos shared in chat are deleted 7 days after a request is finished. How long each kind of data is kept is being finalised with our lawyer.',
     termsBody:
-      "Hopbag is a marketplace that connects people who want items from another state with travelers already making that trip. Hopbag is not a courier and does not carry, buy or own any item. Only items on the allowed list may be requested; prohibited items (medicines, alcohol, tobacco, cash, jewellery, batteries, weapons, flammable items, drugs, live animals and anything a traveler cannot open and inspect) are never allowed. Travelers must be verified and may inspect items before carrying them. Payments are held by Razorpay and released to the traveler, minus Hopbag's fee, after delivery is confirmed. Problems can be reported for review. These terms are a draft and will be finalised after legal review before public launch.",
+      "Hopbag is a marketplace that connects people who want items from another state with travelers already making that trip. Hopbag is not a courier and does not carry, buy or own any item. Only items on the allowed list may be requested; prohibited items (medicines, alcohol, tobacco, cash, jewellery, batteries, weapons, flammable items, drugs, live animals and anything a traveler cannot open and inspect) are never allowed. Travelers must be verified and may inspect items before carrying them. The requester pays the item price, the traveler's fare and a small Hopbag fee. Payments are held by Razorpay and released to the traveler after delivery is confirmed. Problems can be reported for review. These terms are a draft and will be finalised after legal review before public launch.",
   },
   adminDashboard: {
     title: 'Hopbag admin',
@@ -857,7 +865,7 @@ export const en = {
     deliveries: 'Deliveries',
     disputes: 'Disputes',
     trip: 'Their trip',
-    travels: '{{mode}} {{date}} · {{free}} space left',
+    travels: '{{mode}} · {{date}}',
     carryFare: 'Carry fare',
     itemPrice: 'Item price',
     fee: 'Hopbag fee',
@@ -899,6 +907,7 @@ export const en = {
     waitingPickup: 'Waiting for pickup in {{city}}',
     handedOver: 'Handed over: confirm you have it',
     deliveredWithCode: 'Delivered with your code',
+    confirmBy: 'Confirm by {{deadline}}, or it is released automatically',
     showCode: 'Show my delivery code',
     somethingWrong: 'Something wrong? Report a problem',
     cancelRefund: 'Cancel and get a refund',
@@ -911,9 +920,9 @@ export const en = {
     intro:
       "Share this code with {{name}} only when you are holding your {{item}} and you're happy with it.",
     label: 'DELIVERY CODE',
-    valid: 'Valid until you use it or get a new code',
+    valid: 'Works once. Getting a new code stops this one.',
     releases:
-      "Sharing the code releases the payment to {{name}}. Don't share it early or over chat.",
+      "Sharing the code releases {{amount}} to {{name}}. Don't share it early or over chat.",
     auto: "If {{name}} marks it handed over and you don't respond in 48 hours, the payment is released automatically.",
     received: 'I received my item',
     problem: "There's a problem with the item",
@@ -1030,6 +1039,14 @@ export const en = {
   howPayments: {
     title: 'How payments are held',
     body: "When you accept an offer you pay the item price, the traveler's fare and a small Hopbag fee. Razorpay holds the money; Hopbag never does. It is released to the traveler only when you share your delivery code or confirm you received the item. If something goes wrong, report a problem and the payment stays frozen until Hopbag reviews it. Cancel before pickup for a full refund.",
+  },
+  travelerRequest: {
+    waitingPayment: 'Chosen. Waiting for the requester to pay before you buy the item.',
+    pickTrip: 'Open this request from one of your trips to make an offer.',
+  },
+  paidScreen: {
+    arriving: 'arriving {{date}}',
+    chatAnyTime: 'You can chat any time',
   },
   becomeTraveler: {
     title: 'Become a traveler',

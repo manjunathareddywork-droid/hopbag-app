@@ -4,6 +4,7 @@ import { Alert, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Screen } from '@/components/screen';
+import { ScreenHeader } from '@/components/screen-header';
 import { SelectField } from '@/components/select-field';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
@@ -56,6 +57,7 @@ export default function ReportOrBlockScreen() {
 
   return (
     <Screen>
+      <ScreenHeader title={t('safety.title')} />
       <Text variant="title">{t('safety.aboutPerson', { name: person?.full_name ?? '' })}</Text>
 
       <View style={styles.box}>

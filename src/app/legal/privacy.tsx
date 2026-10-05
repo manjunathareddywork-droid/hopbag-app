@@ -2,5 +2,5 @@ import { LegalPage } from '@/components/legal-page';
 import { t } from '@/i18n';
 
 export default function PrivacyScreen() {
-  return <LegalPage body={t('legal.privacyBody')} />;
+  return <LegalPage title={t('legal.privacyTitle')} body={t('legal.privacyBody')} />;
 }

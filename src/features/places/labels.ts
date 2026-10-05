@@ -14,6 +14,7 @@ export function cityItems(cities: City[], states: State[]): SelectItem[] {
   return cities.map((c) => ({
     value: String(c.id),
     label: cityLabel(c, states),
+    shortLabel: c.name,
     keywords: [...c.aliases, stateName(c.state_code, states)],
   }));
 }

@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 
 import { LoadingView } from '@/components/loading-view';
 import { Screen } from '@/components/screen';
+import { ScreenHeader } from '@/components/screen-header';
 import { useCities, useStates } from '@/features/places/hooks';
 import { useAvatarUrl, useMyProfile, useSaveProfile } from '@/features/profile/hooks';
 import { ProfileForm } from '@/features/profile/profile-form';
@@ -30,6 +31,7 @@ export default function EditProfileScreen() {
 
   return (
     <Screen>
+      <ScreenHeader title={t('editProfile.title')} />
       <ProfileForm
         profile={profile}
         currentPhotoUrl={avatarUrl}

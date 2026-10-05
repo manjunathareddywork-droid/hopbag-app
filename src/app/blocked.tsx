@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button } from '@/components/button';
 import { LoadingView } from '@/components/loading-view';
 import { Screen } from '@/components/screen';
+import { ScreenHeader } from '@/components/screen-header';
 import { Text } from '@/components/text';
 import { useProfilesByIds } from '@/features/profile/hooks';
 import { useMyBlocks, useUnblock } from '@/features/safety/hooks';
@@ -26,6 +27,7 @@ export default function BlockedScreen() {
 
   return (
     <Screen>
+      <ScreenHeader title={t('safety.blockedListTitle')} />
       {blocks.data.length === 0 ? (
         <Text variant="body" muted>
           {t('safety.blockedListEmpty')}

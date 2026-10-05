@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { Screen } from '@/components/screen';
+import { ScreenHeader } from '@/components/screen-header';
 import { Text } from '@/components/text';
 import { t, type StringKey } from '@/i18n';
 import { colors, radius, spacing } from '@/theme';
@@ -20,6 +21,7 @@ const REASONS = [
 export default function NotAllowedScreen() {
   return (
     <Screen>
+      <ScreenHeader title={t('notAllowed.title')} />
       <Text variant="body">{t('notAllowed.intro')}</Text>
       <View style={styles.list}>
         {REASONS.map((code) => (

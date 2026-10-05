@@ -1,31 +1,69 @@
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
+import { Card } from '@/components/card';
+import { IconTile } from '@/components/icon-tile';
+import type { IconName } from '@/components/icon';
 import { LoadingView } from '@/components/loading-view';
+import { Screen } from '@/components/screen';
+import { ScreenHeader } from '@/components/screen-header';
 import { Text } from '@/components/text';
 import { useMarkAllRead, useNotifications } from '@/features/notifications/hooks';
 import { notificationRoute, notificationText } from '@/features/notifications/text';
 import { useMyRequests } from '@/features/requests/hooks';
 import { t } from '@/i18n';
-import { formatDateTime } from '@/lib/dates';
-import { colors, radius, spacing } from '@/theme';
+import type { AppNotification, NotificationKind } from '@/lib/database.types';
+import { formatAgo } from '@/lib/dates';
+import { colors, spacing } from '@/theme';
+
+type Tile = { icon: IconName; tone: 'peach' | 'green' | 'blue' | 'grey' | 'tealTint' };
+
+function tileFor(kind: NotificationKind): Tile {
+  switch (kind) {
+    case 'offer_received':
+    case 'route_request':
+      return { icon: 'navigation', tone: 'peach' };
+    case 'id_approved':
+    case 'ticket_approved':
+    case 'completed':
+      return { icon: 'shield', tone: 'green' };
+    case 'picked_up':
+    case 'handed_over':
+      return { icon: 'box', tone: 'blue' };
+    case 'request_paid':
+    case 'payout_unlocked':
+    case 'refunded':
+      return { icon: 'credit-card', tone: 'grey' };
+    case 'message':
+      return { icon: 'message-square', tone: 'tealTint' };
+    case 'rated':
+      return { icon: 'star', tone: 'peach' };
+    default:
+      return { icon: 'bell', tone: 'grey' };
+  }
+}
 
 export default function UpdatesScreen() {
   const router = useRouter();
   const notifications = useNotifications();
   const myRequests = useMyRequests();
   const markRead = useMarkAllRead();
-  const unread = (notifications.data ?? []).some((n) => n.read_at === null);
+  // Which ones were new when the screen opened; they stay under "New" after being read.
+  const [newIds, setNewIds] = useState<Set<number> | null>(null);
+  const data = notifications.data;
 
-  // Opening the list counts as reading it.
+  if (data && newIds === null) {
+    setNewIds(new Set(data.filter((n) => n.read_at === null).map((n) => n.id)));
+  }
+
   const { mutate } = markRead;
+  const unread = (data ?? []).some((n) => n.read_at === null);
   useEffect(() => {
     if (unread) mutate();
   }, [unread, mutate]);
 
-  if (!notifications.data) {
+  if (!data) {
     return (
       <LoadingView
         error={notifications.isError ? t('common.networkError') : undefined}
@@ -36,80 +74,66 @@ export default function UpdatesScreen() {
   }
 
   const myRequestIds = (myRequests.data ?? []).map((r) => r.id);
+  const fresh = data.filter((n) => newIds?.has(n.id) || n.read_at === null);
+  const earlier = data.filter((n) => !fresh.includes(n));
+
+  const row = (n: AppNotification, isNew: boolean) => {
+    const text = notificationText(n);
+    const tile = tileFor(n.kind);
+    return (
+      <Card
+        key={n.id}
+        style={styles.row}
+        onPress={() => router.push(notificationRoute(n, myRequestIds))}
+      >
+        <IconTile name={tile.icon} tone={tile.tone} size={48} />
+        <View style={styles.flex}>
+          <Text variant="bodyStrong">{text.title}</Text>
+          <Text variant="caption" muted>
+            {text.body}
+          </Text>
+          <Text variant="caption" muted>
+            {formatAgo(n.created_at)}
+          </Text>
+        </View>
+        {isNew ? (
+          <View style={styles.dot} accessibilityLabel={t('notificationsScreen.new')} />
+        ) : null}
+      </Card>
+    );
+  };
 
   return (
-    <SafeAreaView style={styles.screen} edges={['bottom']}>
-      <FlatList
-        data={notifications.data}
-        keyExtractor={(n) => String(n.id)}
-        contentContainerStyle={styles.list}
-        refreshing={notifications.isRefetching}
-        onRefresh={() => notifications.refetch()}
-        ListEmptyComponent={
-          <Text variant="body" muted style={styles.empty}>
-            {t('notifications.empty')}
+    <Screen>
+      <ScreenHeader title={t('notificationsScreen.title')} />
+      {data.length === 0 ? (
+        <Text variant="body" muted style={styles.empty}>
+          {t('notificationsScreen.empty')}
+        </Text>
+      ) : null}
+      {fresh.length > 0 ? (
+        <>
+          <Text variant="label" muted>
+            {t('notificationsScreen.new')}
           </Text>
-        }
-        renderItem={({ item }) => {
-          const text = notificationText(item);
-          return (
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => router.push(notificationRoute(item, myRequestIds))}
-              style={styles.card}
-            >
-              <View style={styles.top}>
-                {item.read_at === null ? <View style={styles.dot} /> : null}
-                <Text variant="label" style={styles.title}>
-                  {text.title}
-                </Text>
-              </View>
-              <Text variant="body">{text.body}</Text>
-              <Text variant="caption" muted>
-                {formatDateTime(item.created_at)}
-              </Text>
-            </Pressable>
-          );
-        }}
-      />
-    </SafeAreaView>
+          {fresh.map((n) => row(n, true))}
+        </>
+      ) : null}
+      {earlier.length > 0 ? (
+        <>
+          <Text variant="label" muted>
+            {t('notificationsScreen.earlier')}
+          </Text>
+          {earlier.map((n) => row(n, false))}
+        </>
+      ) : null}
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  list: {
-    padding: spacing.lg,
-    gap: spacing.md,
-    flexGrow: 1,
-  },
-  empty: {
-    textAlign: 'center',
-    paddingVertical: spacing.xl,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.xs,
-  },
-  top: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.accent,
-  },
-  title: {
-    flex: 1,
-  },
+  row: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
+  flex: { flex: 1, gap: 2 },
+  dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.orange, marginTop: 6 },
+  empty: { textAlign: 'center', paddingVertical: spacing.xl },
 });
