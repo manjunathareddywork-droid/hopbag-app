@@ -1,17 +1,18 @@
 import { useMutation } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { CodeBoxes } from '@/components/code-boxes';
 import { Screen } from '@/components/screen';
+import { BackButton } from '@/components/screen-header';
 import { Text } from '@/components/text';
-import { TextField } from '@/components/text-field';
 import { authErrorKey, sendOtp, verifyOtp } from '@/features/auth/api';
 import { formatIndianPhone } from '@/features/auth/phone';
 import { t } from '@/i18n';
 import { track } from '@/lib/monitoring';
-import { colors, spacing } from '@/theme';
+import { colors, fonts, spacing } from '@/theme';
 
 const RESEND_SECONDS = 30;
 
@@ -47,8 +48,7 @@ export default function VerifyScreen() {
     verify.mutate(value);
   }
 
-  function onChangeCode(text: string) {
-    const digits = text.replace(/\D/g, '').slice(0, 6);
+  function onChangeCode(digits: string) {
     setCode(digits);
     // Submit automatically once all 6 digits are in (including SMS autofill).
     if (digits.length === 6 && !verify.isPending) onSubmit(digits);
@@ -56,78 +56,72 @@ export default function VerifyScreen() {
 
   const error =
     inputError ?? (verify.error ? t(authErrorKey(verify.error, 'verify.wrongCode')) : undefined);
+  const clock = `0:${String(secondsLeft).padStart(2, '0')}`;
 
   return (
-    <Screen>
+    <Screen
+      footer={
+        <Button title={t('verify.submit')} loading={verify.isPending} onPress={() => onSubmit()} />
+      }
+    >
+      <BackButton />
       <View style={styles.header}>
-        <Text variant="title">{t('verify.title')}</Text>
+        <Text variant="display">{t('auth.codeTitle')}</Text>
         <Text variant="body" muted>
-          {t('verify.subtitle', { phone: formatIndianPhone(phone) })}
+          {t('auth.sentTo', { phone: formatIndianPhone(phone) })}{' '}
+          <Text
+            variant="bodyStrong"
+            style={styles.change}
+            accessibilityRole="link"
+            onPress={() => router.back()}
+          >
+            {t('auth.change')}
+          </Text>
         </Text>
       </View>
 
-      <TextField
-        label={t('verify.codeLabel')}
-        keyboardType="number-pad"
-        autoComplete="sms-otp"
-        textContentType="oneTimeCode"
-        maxLength={6}
-        autoFocus
+      <CodeBoxes
+        length={6}
         value={code}
-        onChangeText={onChangeCode}
-        style={styles.codeInput}
-        error={error}
+        onChange={onChangeCode}
+        accessibilityLabel={t('verify.codeLabel')}
+        autoFocus
       />
+      {error ? (
+        <Text variant="caption" style={styles.error} accessibilityLiveRegion="polite">
+          {error}
+        </Text>
+      ) : null}
+      {resend.error ? (
+        <Text variant="caption" style={styles.error}>
+          {t(authErrorKey(resend.error, 'signIn.sendFailed'))}
+        </Text>
+      ) : null}
 
-      <Button title={t('verify.submit')} loading={verify.isPending} onPress={() => onSubmit()} />
-
-      <View style={styles.links}>
-        {resend.isSuccess && secondsLeft > 0 ? (
-          <Text variant="caption" style={styles.success}>
-            {t('verify.resent')}
-          </Text>
-        ) : null}
-        {resend.error ? (
-          <Text variant="caption" style={styles.danger}>
-            {t(authErrorKey(resend.error, 'signIn.sendFailed'))}
-          </Text>
-        ) : null}
-        <Button
-          variant="secondary"
-          title={
-            secondsLeft > 0 ? t('verify.resendIn', { seconds: secondsLeft }) : t('verify.resend')
-          }
-          disabled={secondsLeft > 0}
-          loading={resend.isPending}
+      <View style={styles.resendRow}>
+        <Text variant="caption" muted>
+          {secondsLeft > 0 ? t('auth.resendIn', { time: clock }) : ''}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          disabled={secondsLeft > 0 || resend.isPending}
           onPress={() => resend.mutate()}
-        />
-        <Button
-          variant="secondary"
-          title={t('verify.changeNumber')}
-          onPress={() => router.back()}
-        />
+          hitSlop={12}
+        >
+          <Text style={[styles.resend, secondsLeft > 0 && styles.resendOff]}>
+            {t('auth.resend')}
+          </Text>
+        </Pressable>
       </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    gap: spacing.sm,
-  },
-  codeInput: {
-    fontSize: 24,
-    letterSpacing: 8,
-  },
-  links: {
-    gap: spacing.md,
-  },
-  success: {
-    color: colors.success,
-    textAlign: 'center',
-  },
-  danger: {
-    color: colors.danger,
-    textAlign: 'center',
-  },
+  header: { gap: spacing.sm, marginTop: spacing.md },
+  change: { textDecorationLine: 'underline' },
+  error: { color: colors.danger },
+  resendRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  resend: { fontFamily: fonts.bold, fontSize: 15, color: colors.text },
+  resendOff: { color: colors.textSubtle },
 });

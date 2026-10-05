@@ -11,6 +11,8 @@ type Props = TextInputProps & {
   hint?: ReactNode;
   /** Fixed text shown before the input inside the box, e.g. "Rs". */
   prefix?: ReactNode;
+  /** Unit after the input inside the box, e.g. "kg". */
+  suffix?: string;
   /** A separate box before the field, e.g. "+91" on the phone screen. */
   prefixBox?: string;
   /** Large number style (fare entry). */
@@ -25,6 +27,7 @@ export function TextField({
   error,
   hint,
   prefix,
+  suffix,
   prefixBox,
   big,
   muted,
@@ -68,6 +71,7 @@ export function TextField({
             }}
             {...rest}
           />
+          {suffix ? <Text style={styles.suffix}>{suffix}</Text> : null}
         </View>
       </View>
       {error ? (
@@ -108,6 +112,7 @@ const styles = StyleSheet.create({
   boxError: { borderColor: colors.danger, borderWidth: 2 },
   prefix: { marginRight: spacing.sm, fontFamily: fonts.bold, fontSize: 18, color: colors.text },
   bigPrefix: { fontSize: 26 },
+  suffix: { marginLeft: spacing.sm, fontFamily: fonts.regular, fontSize: 18, color: colors.text },
   input: {
     flex: 1,
     fontFamily: fonts.regular,

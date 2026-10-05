@@ -1,24 +1,24 @@
 import { useMutation } from '@tanstack/react-query';
-import { Image } from 'expo-image';
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { CheckRow } from '@/components/choice';
 import { Screen } from '@/components/screen';
+import { BackButton } from '@/components/screen-header';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
 import { authErrorKey, sendOtp } from '@/features/auth/api';
 import { toIndianE164 } from '@/features/auth/phone';
 import { t } from '@/i18n';
 import { track } from '@/lib/monitoring';
-import { spacing } from '@/theme';
-
-const logo = require('@/assets/brand/logo/hopbag-logo-horizontal-onlight.svg');
+import { colors, spacing } from '@/theme';
 
 export default function SignInScreen() {
   const router = useRouter();
   const [phoneInput, setPhoneInput] = useState('');
+  const [agreed, setAgreed] = useState(false);
   const [inputError, setInputError] = useState<string>();
 
   const send = useMutation({
@@ -35,28 +35,29 @@ export default function SignInScreen() {
       setInputError(t('signIn.phoneInvalid'));
       return;
     }
+    if (!agreed) {
+      setInputError(t('auth.agreeRequired'));
+      return;
+    }
     setInputError(undefined);
     send.mutate(phone);
   }
 
   return (
-    <Screen>
+    <Screen
+      footer={<Button title={t('signIn.sendCode')} loading={send.isPending} onPress={onSubmit} />}
+    >
+      {router.canGoBack() ? <BackButton /> : null}
       <View style={styles.header}>
-        <Image
-          source={logo}
-          style={styles.logo}
-          contentFit="contain"
-          accessibilityLabel={t('common.appName')}
-        />
-        <Text variant="title">{t('signIn.title')}</Text>
+        <Text variant="display">{t('auth.phoneTitle')}</Text>
         <Text variant="body" muted>
-          {t('signIn.subtitle')}
+          {t('auth.phoneSubtitle')}
         </Text>
       </View>
 
       <TextField
         label={t('signIn.phoneLabel')}
-        prefix="+91"
+        prefixBox="+91"
         placeholder={t('signIn.phonePlaceholder')}
         keyboardType="phone-pad"
         autoComplete="tel"
@@ -70,11 +71,15 @@ export default function SignInScreen() {
         }
       />
 
-      <Button title={t('signIn.sendCode')} loading={send.isPending} onPress={onSubmit} />
-
-      <Text variant="caption" muted>
-        {t('legal.agree')}
-      </Text>
+      <CheckRow
+        checked={agreed}
+        onChange={setAgreed}
+        label={
+          <Text variant="caption" muted>
+            {t('auth.agree')}
+          </Text>
+        }
+      />
       <View style={styles.legal}>
         <Link href="/legal/terms" style={styles.legalLink}>
           <Text variant="caption">{t('legal.termsTitle')}</Text>
@@ -88,21 +93,11 @@ export default function SignInScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    gap: spacing.sm,
-    paddingTop: spacing.xl,
-  },
-  legal: {
-    flexDirection: 'row',
-    gap: spacing.lg,
-  },
+  header: { gap: spacing.sm, marginTop: spacing.md },
+  legal: { flexDirection: 'row', gap: spacing.lg, marginLeft: 44 },
   legalLink: {
     paddingVertical: spacing.xs,
     textDecorationLine: 'underline',
-  },
-  logo: {
-    width: 146,
-    height: 40,
-    marginBottom: spacing.lg,
+    color: colors.text,
   },
 });

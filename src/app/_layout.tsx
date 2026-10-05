@@ -21,6 +21,15 @@ import { installGlobalErrorHandler, reportError, track } from '@/lib/monitoring'
 import { queryClient } from '@/lib/query-client';
 import { colors, fonts } from '@/theme';
 
+const adminHeader = (title: string) => ({
+  headerShown: true,
+  title,
+  headerShadowVisible: false,
+  headerStyle: { backgroundColor: colors.background },
+  headerTintColor: colors.text,
+  headerTitleStyle: { fontFamily: fonts.bold },
+});
+
 SplashScreen.preventAutoHideAsync();
 installGlobalErrorHandler();
 track('app_opened');
@@ -57,7 +66,8 @@ export default function RootLayout() {
 
 /**
  * Which screens exist depends on auth state (Expo Router protected routes):
- * signed out -> sign-in/verify; signed in without profile -> onboarding; else the app.
+ * signed out -> welcome/intro/sign-in/verify; signed in without profile -> onboarding;
+ * else the tabs and the screens they open.
  * This is navigation only; access control is enforced by RLS in the database.
  */
 function RootNavigator() {
@@ -111,62 +121,73 @@ function RootNavigator() {
   return (
     <Stack
       screenOptions={{
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: colors.background },
-        headerTintColor: colors.text,
-        headerTitleStyle: { fontFamily: fonts.bold },
+        // Screens draw their own header (back button and title), as in the designs.
+        headerShown: false,
         contentStyle: { backgroundColor: colors.background },
       }}
     >
       <Stack.Protected guard={!signedIn}>
-        <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-        <Stack.Screen name="verify" options={{ title: '' }} />
+        <Stack.Screen name="welcome" />
+        <Stack.Screen name="intro" />
+        <Stack.Screen name="sign-in" />
+        <Stack.Screen name="verify" />
       </Stack.Protected>
 
       <Stack.Protected guard={signedIn && !hasProfile}>
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding" />
       </Stack.Protected>
 
       <Stack.Protected guard={signedIn && hasProfile}>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="account" options={{ title: t('account.title') }} />
-        <Stack.Screen name="edit-profile" options={{ title: t('editProfile.title') }} />
-        <Stack.Screen name="requests/index" options={{ title: t('requests.listTitle') }} />
-        <Stack.Screen name="requests/new" options={{ title: t('requests.newTitle') }} />
-        <Stack.Screen name="requests/[id]" options={{ title: t('requests.detailTitle') }} />
-        <Stack.Screen name="not-allowed" options={{ title: t('notAllowed.title') }} />
-        <Stack.Screen name="traveler/index" options={{ title: t('traveler.title') }} />
-        <Stack.Screen name="traveler/verify-id" options={{ title: t('verifyId.title') }} />
-        <Stack.Screen name="traveler/trips/new" options={{ title: t('trips.newTitle') }} />
-        <Stack.Screen name="traveler/trips/[id]" options={{ title: t('trips.detailTitle') }} />
-        <Stack.Screen name="traveler/feed" options={{ title: t('offers.feedTitle') }} />
-        <Stack.Screen name="pay/[requestId]" options={{ title: t('payment.title') }} />
-        <Stack.Screen
-          name="handover-code/[requestId]"
-          options={{ title: t('delivery.codeTitle') }}
-        />
-        <Stack.Screen name="dispute/[requestId]" options={{ title: t('dispute.title') }} />
-        <Stack.Screen name="chat/[requestId]" options={{ title: t('chat.title') }} />
-        <Stack.Screen name="report/[userId]" options={{ title: t('safety.title') }} />
-        <Stack.Screen name="blocked" options={{ title: t('safety.blockedListTitle') }} />
-        <Stack.Screen name="admin/dashboard" options={{ title: t('adminDashboard.title') }} />
-        <Stack.Screen name="admin/reports/index" options={{ title: t('adminDashboard.reports') }} />
-        <Stack.Screen name="admin/reports/[id]" options={{ title: t('adminDashboard.reports') }} />
-        <Stack.Screen name="admin/errors" options={{ title: t('adminDashboard.errors') }} />
-        <Stack.Screen name="updates" options={{ title: t('notifications.title') }} />
-        <Stack.Screen name="traveler/requests/[id]" options={{ title: t('offers.requestTitle') }} />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="requests/new" />
+        <Stack.Screen name="requests/[id]" />
+        <Stack.Screen name="offers/[id]" />
+        <Stack.Screen name="pay/[requestId]" />
+        <Stack.Screen name="paid/[requestId]" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="handover-code/[requestId]" />
+        <Stack.Screen name="delivered/[requestId]" />
+        <Stack.Screen name="dispute/[requestId]" />
+        <Stack.Screen name="chat/[requestId]" />
+        <Stack.Screen name="updates" />
+        <Stack.Screen name="not-allowed" />
+        <Stack.Screen name="traveler/verify-id" />
+        <Stack.Screen name="traveler/status" />
+        <Stack.Screen name="traveler/trips/new" />
+        <Stack.Screen name="traveler/trips/[id]" />
+        <Stack.Screen name="traveler/requests/[id]" />
+        <Stack.Screen name="traveler/offer-sent" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="traveler/pickup/[requestId]" />
+        <Stack.Screen name="traveler/deliver/[requestId]" />
+        <Stack.Screen name="earnings" />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="support" />
+        <Stack.Screen name="how-payments" />
+        <Stack.Screen name="edit-profile" />
+        <Stack.Screen name="report/[userId]" />
+        <Stack.Screen name="blocked" />
 
-        {/* Admin screens check admin rights themselves (AdminOnly); the database enforces them. */}
-        <Stack.Screen name="admin/index" options={{ title: t('admin.title') }} />
-        <Stack.Screen name="admin/verifications/[id]" options={{ title: t('admin.title') }} />
-        <Stack.Screen name="admin/trips/[id]" options={{ title: t('admin.title') }} />
+        {/* Admin tools keep the plain header. They check admin rights themselves (AdminOnly);
+            the database enforces them. */}
+        <Stack.Screen name="admin/dashboard" options={adminHeader(t('adminDashboard.title'))} />
+        <Stack.Screen
+          name="admin/reports/index"
+          options={adminHeader(t('adminDashboard.reports'))}
+        />
+        <Stack.Screen
+          name="admin/reports/[id]"
+          options={adminHeader(t('adminDashboard.reports'))}
+        />
+        <Stack.Screen name="admin/errors" options={adminHeader(t('adminDashboard.errors'))} />
+        <Stack.Screen name="admin/index" options={adminHeader(t('admin.title'))} />
+        <Stack.Screen name="admin/verifications/[id]" options={adminHeader(t('admin.title'))} />
+        <Stack.Screen name="admin/trips/[id]" options={adminHeader(t('admin.title'))} />
         <Stack.Screen
           name="admin/disputes/[requestId]"
-          options={{ title: t('adminDisputes.title') }}
+          options={adminHeader(t('adminDisputes.title'))}
         />
       </Stack.Protected>
-      <Stack.Screen name="legal/privacy" options={{ title: t('legal.privacyTitle') }} />
-      <Stack.Screen name="legal/terms" options={{ title: t('legal.termsTitle') }} />
+      <Stack.Screen name="legal/privacy" />
+      <Stack.Screen name="legal/terms" />
     </Stack>
   );
 }

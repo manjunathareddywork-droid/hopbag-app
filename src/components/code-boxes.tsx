@@ -50,7 +50,8 @@ export function CodeBoxes({
     );
   }
   return (
-    <Pressable onPress={() => input.current?.focus()} accessibilityLabel={accessibilityLabel}>
+    // The hidden input carries the label, so screen readers announce one field.
+    <Pressable onPress={() => input.current?.focus()} accessible={false}>
       <View style={styles.row} pointerEvents="none">
         {boxes}
       </View>

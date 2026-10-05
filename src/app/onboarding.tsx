@@ -30,24 +30,26 @@ export default function OnboardingScreen() {
     );
   }
 
-  // After saving, the profile exists and the root navigator shows the home screen.
+  // After saving, the profile exists and the root navigator shows the home tab.
   return (
     <Screen>
       <View style={styles.header}>
-        <Text variant="title">{t('onboarding.title')}</Text>
+        <Text variant="display">{t('setup.title')}</Text>
         <Text variant="body" muted>
-          {t('onboarding.subtitle')}
+          {t('setup.subtitle')}
         </Text>
       </View>
       <ProfileForm
         profile={profile ?? null}
         cities={cities.data}
         states={states.data}
-        submitLabel={t('onboarding.submit')}
+        submitLabel={t('setup.finish')}
         saving={save.isPending}
         saveError={save.isError ? t('profile.saveFailed') : undefined}
         onSubmit={(values) =>
-          save.mutate(values, { onSuccess: () => track('onboarding_completed') })
+          save.mutate(values, {
+            onSuccess: () => track('onboarding_completed', { intent: values.intent }),
+          })
         }
       />
     </Screen>
@@ -55,8 +57,5 @@ export default function OnboardingScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    gap: spacing.sm,
-    paddingTop: spacing.lg,
-  },
+  header: { gap: spacing.sm, paddingTop: spacing.md },
 });

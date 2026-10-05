@@ -8,10 +8,17 @@ type MciName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 /** Outline icons like the designs. Feather for most; a few from Material Community. */
 const MCI: Record<string, MciName> = {
-  cup: 'cup-outline',
+  cup: 'coffee-outline',
   store: 'storefront-outline',
   shirt: 'tshirt-crew-outline',
   bank: 'bank-outline',
+  candy: 'candy-outline',
+  peanut: 'peanut-outline',
+  palette: 'palette-outline',
+  toy: 'toy-brick-outline',
+  jar: 'bottle-tonic-outline',
+  starFilled: 'star',
+  starEmpty: 'star-outline',
 };
 
 export type IconName = FeatherName | keyof typeof MCI;

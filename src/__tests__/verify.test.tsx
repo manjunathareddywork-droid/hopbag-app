@@ -22,7 +22,7 @@ describe('VerifyScreen', () => {
 
   it('shows the number the code was sent to', async () => {
     await renderWithQuery(<VerifyScreen />);
-    expect(screen.getByText('We sent a 6-digit code to +91 98765 43210.')).toBeTruthy();
+    expect(screen.getByText(/Sent to \+91 98765 43210\./)).toBeTruthy();
   });
 
   it('verifies automatically once 6 digits are entered', async () => {
@@ -49,6 +49,7 @@ describe('VerifyScreen', () => {
 
   it('does not allow resending before the countdown ends', async () => {
     await renderWithQuery(<VerifyScreen />);
-    expect(screen.getByText('Send a new code in 30s')).toBeTruthy();
+    expect(screen.getByText('Resend code in 0:30')).toBeTruthy();
+    expect(screen.getByRole('button', { name: en.auth.resend })).toBeDisabled();
   });
 });

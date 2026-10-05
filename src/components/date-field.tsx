@@ -4,7 +4,7 @@ import { Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { t } from '@/i18n';
-import { formatDate, isoToLocalDate, localDateToIso } from '@/lib/dates';
+import { formatDate, formatShortDate, isoToLocalDate, localDateToIso } from '@/lib/dates';
 import { colors, radius, spacing } from '@/theme';
 
 import { Button } from './button';
@@ -19,10 +19,22 @@ type Props = {
   minDate: string;
   maxDate: string;
   error?: string;
+  /** "14 Oct" instead of "14 Oct 2026" (dates within the next weeks). */
+  short?: boolean;
 };
 
 /** Native calendar: a dialog on Android, a sheet with an inline calendar on iOS. */
-export function DateField({ label, placeholder, value, onChange, minDate, maxDate, error }: Props) {
+export function DateField({
+  label,
+  placeholder,
+  value,
+  onChange,
+  minDate,
+  maxDate,
+  error,
+  short,
+}: Props) {
+  const shown = value ? (short ? formatShortDate(value) : formatDate(value)) : placeholder;
   const [iosOpen, setIosOpen] = useState(false);
   const [iosDraft, setIosDraft] = useState<Date>(isoToLocalDate(value || minDate));
 
@@ -52,12 +64,12 @@ export function DateField({ label, placeholder, value, onChange, minDate, maxDat
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={label}
-        accessibilityValue={{ text: value ? formatDate(value) : placeholder }}
+        accessibilityValue={{ text: shown }}
         onPress={openPicker}
         style={[styles.box, error ? styles.boxError : null]}
       >
-        <Text variant="body" muted={!value}>
-          {value ? formatDate(value) : placeholder}
+        <Text variant="body" muted={!value} numberOfLines={1}>
+          {shown}
         </Text>
       </Pressable>
       {error ? (
@@ -101,19 +113,20 @@ export function DateField({ label, placeholder, value, onChange, minDate, maxDat
 
 const styles = StyleSheet.create({
   wrapper: {
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   box: {
-    minHeight: 52,
+    minHeight: 58,
     justifyContent: 'center',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
     backgroundColor: colors.surface,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.md + 2,
   },
   boxError: {
     borderColor: colors.danger,
+    borderWidth: 2,
   },
   error: {
     color: colors.danger,

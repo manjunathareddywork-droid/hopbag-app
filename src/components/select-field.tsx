@@ -11,6 +11,8 @@ import { Text } from './text';
 export type SelectItem = {
   value: string;
   label: string;
+  /** Shorter text for the closed box, e.g. "Hyderabad" for "Hyderabad, Telangana". */
+  shortLabel?: string;
   description?: string;
   /** Extra words that should match a search, e.g. old city names. */
   keywords?: string[];
@@ -66,8 +68,8 @@ export function SelectField({
         onPress={() => setOpen(true)}
         style={[styles.box, error ? styles.boxError : null]}
       >
-        <Text variant="body" muted={!selected}>
-          {selected?.label ?? placeholder}
+        <Text variant="body" muted={!selected} numberOfLines={1}>
+          {selected?.shortLabel ?? selected?.label ?? placeholder}
         </Text>
       </Pressable>
       {hint && !error ? (

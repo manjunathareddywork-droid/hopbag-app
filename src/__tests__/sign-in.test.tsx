@@ -7,7 +7,7 @@ import { renderWithQuery } from '@/test-utils';
 
 const mockPush = jest.fn();
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, canGoBack: () => false }),
   Link: ({ children }: { children: unknown }) => children,
 }));
 jest.mock('@/lib/supabase', () => ({
@@ -19,6 +19,16 @@ const signInWithOtp = supabase.auth.signInWithOtp as jest.Mock;
 describe('SignInScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('asks people to accept the terms first', async () => {
+    await renderWithQuery(<SignInScreen />);
+
+    await fireEvent.changeText(screen.getByLabelText(en.signIn.phoneLabel), '98765 43210');
+    await fireEvent.press(screen.getByText(en.signIn.sendCode));
+
+    expect(screen.getByText(en.auth.agreeRequired)).toBeTruthy();
+    expect(signInWithOtp).not.toHaveBeenCalled();
   });
 
   it('blocks numbers that are not Indian mobiles', async () => {
@@ -36,6 +46,7 @@ describe('SignInScreen', () => {
     await renderWithQuery(<SignInScreen />);
 
     await fireEvent.changeText(screen.getByLabelText(en.signIn.phoneLabel), '98765 43210');
+    await fireEvent.press(screen.getByRole('checkbox'));
     await fireEvent.press(screen.getByText(en.signIn.sendCode));
 
     expect(signInWithOtp).toHaveBeenCalledWith({ phone: '+919876543210' });
@@ -50,6 +61,7 @@ describe('SignInScreen', () => {
     await renderWithQuery(<SignInScreen />);
 
     await fireEvent.changeText(screen.getByLabelText(en.signIn.phoneLabel), '9876543210');
+    await fireEvent.press(screen.getByRole('checkbox'));
     await fireEvent.press(screen.getByText(en.signIn.sendCode));
 
     expect(await screen.findByText(en.signIn.sendFailed)).toBeTruthy();
