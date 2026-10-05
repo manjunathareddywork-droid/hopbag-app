@@ -1,96 +1,166 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { Controller, useForm } from 'react-hook-form';
-import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
-import { PhotoField } from '@/components/photo-field';
+import { Card } from '@/components/card';
+import { ChoiceChip } from '@/components/choice';
+import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
-import { SelectField } from '@/components/select-field';
+import { ScreenHeader } from '@/components/screen-header';
 import { Text } from '@/components/text';
 import { useSubmitVerification } from '@/features/travelers/hooks';
-import {
-  ID_TYPES,
-  verificationSchema,
-  type VerificationFormValues,
-} from '@/features/travelers/schema';
-import { t, type StringKey } from '@/i18n';
+import { ID_TYPES } from '@/features/travelers/schema';
+import { t } from '@/i18n';
+import type { IdDocumentType } from '@/lib/database.types';
 import { dbErrorMessage } from '@/lib/db-errors';
-import { colors, spacing } from '@/theme';
+import { pickImage, takePhoto } from '@/lib/images';
+import { colors, fonts, radius, spacing } from '@/theme';
 
-const errorText = (message?: string) => (message ? t(message as StringKey) : undefined);
-
+/** Become a traveler: phone (done), a government ID photo, then the ticket with each trip. */
 export default function VerifyIdScreen() {
   const router = useRouter();
   const submit = useSubmitVerification();
-  const { control, handleSubmit } = useForm<VerificationFormValues>({
-    resolver: zodResolver(verificationSchema),
-  });
+  const [idType, setIdType] = useState<IdDocumentType>('aadhaar');
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [error, setError] = useState<string>();
+  const [cameraDenied, setCameraDenied] = useState(false);
+
+  async function addPhoto() {
+    const shot = await takePhoto();
+    setCameraDenied(shot.denied);
+    const uri = shot.uri ?? (shot.denied ? await pickImage() : null);
+    if (uri) setPhoto(uri);
+  }
+
+  function send() {
+    if (!photo) return setError(t('verifyId.photoRequired'));
+    setError(undefined);
+    submit.mutate(
+      { idType, photoUri: photo },
+      { onSuccess: () => router.replace('/traveler/status') },
+    );
+  }
 
   return (
-    <Screen>
+    <Screen
+      footer={
+        <Button title={t('becomeTraveler.submit')} loading={submit.isPending} onPress={send} />
+      }
+    >
+      <ScreenHeader title={t('becomeTraveler.title')} />
       <Text variant="body" muted>
-        {t('verifyId.intro')}
+        {t('becomeTraveler.intro')}
       </Text>
 
-      <Controller
-        control={control}
-        name="idType"
-        render={({ field, fieldState }) => (
-          <View style={styles.group}>
-            <SelectField
-              label={t('verifyId.idTypeLabel')}
-              placeholder={t('verifyId.idTypePlaceholder')}
-              items={ID_TYPES.map((id) => ({ value: id, label: t(`idTypes.${id}` as StringKey) }))}
-              value={field.value ?? ''}
-              onChange={field.onChange}
-              error={errorText(fieldState.error?.message)}
-            />
-            {field.value === 'aadhaar' ? (
-              <Text variant="caption" muted>
-                {t('verifyId.aadhaarTip')}
-              </Text>
-            ) : null}
+      <Card style={styles.row}>
+        <View style={[styles.step, styles.stepDone]}>
+          <Icon name="check" size={18} color={colors.white} />
+        </View>
+        <Text variant="bodyStrong">{t('becomeTraveler.phoneVerified')}</Text>
+      </Card>
+
+      <Card tone="selected" style={styles.group}>
+        <View style={styles.row}>
+          <View style={styles.step}>
+            <Text style={styles.stepText}>2</Text>
           </View>
-        )}
-      />
-
-      <Controller
-        control={control}
-        name="photoUri"
-        render={({ field, fieldState }) => (
-          <PhotoField
-            label={t('verifyId.photoLabel')}
-            tip={t('verifyId.photoTip')}
-            value={field.value ?? null}
-            onChange={field.onChange}
-            error={errorText(fieldState.error?.message)}
+          <Text variant="bodyStrong">{t('becomeTraveler.govId')}</Text>
+        </View>
+        <Text variant="caption" muted>
+          {t('becomeTraveler.govIdHelp')}
+        </Text>
+        <View style={styles.chips}>
+          {ID_TYPES.map((id) => (
+            <ChoiceChip
+              key={id}
+              label={t(`idTypes.${id}`)}
+              selected={idType === id}
+              onPress={() => setIdType(id)}
+            />
+          ))}
+        </View>
+        {idType === 'aadhaar' ? (
+          <Text variant="caption" muted>
+            {t('verifyId.aadhaarTip')}
+          </Text>
+        ) : null}
+        <Pressable accessibilityRole="button" onPress={addPhoto} style={styles.upload}>
+          {photo ? (
+            <Image source={{ uri: photo }} style={styles.preview} contentFit="contain" />
+          ) : (
+            <>
+              <Icon name="camera" size={26} />
+              <Text variant="bodyStrong">{t('becomeTraveler.takeOrUpload')}</Text>
+            </>
+          )}
+        </Pressable>
+        {photo ? (
+          <Button
+            title={t('photo.choose')}
+            variant="link"
+            onPress={async () => {
+              const uri = await pickImage();
+              if (uri) setPhoto(uri);
+            }}
           />
-        )}
-      />
+        ) : null}
+        {cameraDenied ? (
+          <Text variant="caption" muted>
+            {t('photo.cameraDenied')}
+          </Text>
+        ) : null}
+      </Card>
 
-      {submit.error ? (
+      <Card style={styles.group}>
+        <View style={styles.row}>
+          <View style={[styles.step, styles.stepTodo]}>
+            <Text style={[styles.stepText, styles.stepTodoText]}>3</Text>
+          </View>
+          <Text variant="bodyStrong">{t('becomeTraveler.ticketStep')}</Text>
+        </View>
+        <Text variant="caption" muted>
+          {t('becomeTraveler.ticketStepHelp')}
+        </Text>
+      </Card>
+
+      {error || submit.error ? (
         <Text variant="body" style={styles.error} accessibilityLiveRegion="polite">
-          {dbErrorMessage(submit.error, 'verifyId.submitFailed')}
+          {error ?? dbErrorMessage(submit.error, 'verifyId.submitFailed')}
         </Text>
       ) : null}
-
-      <Button
-        title={t('verifyId.submit')}
-        loading={submit.isPending}
-        onPress={handleSubmit((values) =>
-          submit.mutate(values, { onSuccess: () => router.back() }),
-        )}
-      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  group: {
-    gap: spacing.xs,
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  group: { gap: spacing.md - 4 },
+  step: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.teal,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  error: {
-    color: colors.danger,
+  stepDone: { backgroundColor: colors.success },
+  stepTodo: { backgroundColor: colors.tealTint },
+  stepText: { fontFamily: fonts.bold, fontSize: 16, color: colors.white },
+  stepTodoText: { color: colors.text },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  upload: {
+    minHeight: 120,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: colors.textSubtle,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    overflow: 'hidden',
   },
+  preview: { width: '100%', height: 180 },
+  error: { color: colors.danger },
 });

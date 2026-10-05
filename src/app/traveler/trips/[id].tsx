@@ -1,33 +1,37 @@
-import { Link, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { Card } from '@/components/card';
 import { DetailRow } from '@/components/detail-row';
 import { LoadingView } from '@/components/loading-view';
 import { PhotoField } from '@/components/photo-field';
 import { Screen } from '@/components/screen';
+import { ScreenHeader } from '@/components/screen-header';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
-import { useCities, useStates } from '@/features/places/hooks';
-import { cityLabel } from '@/features/places/labels';
-import { formatGrams } from '@/features/requests/weight';
+import { useCities } from '@/features/places/hooks';
 import { useMyProfile } from '@/features/profile/hooks';
+import { RouteRequests } from '@/features/travelers/route-requests';
+import { TripHero } from '@/features/travelers/trip-hero';
+import { useTripLoads } from '@/features/travelers/trip-load';
 import { useCancelTrip, useResubmitTicket, useTrip } from '@/features/travelers/hooks';
 import { normalizePnr, pnrSchema } from '@/features/travelers/schema';
 import { t, type StringKey } from '@/i18n';
 import type { Trip } from '@/lib/database.types';
 import { dbErrorMessage } from '@/lib/db-errors';
-import { formatDate, todayIst } from '@/lib/dates';
-import { colors, radius, spacing } from '@/theme';
+import { todayIst } from '@/lib/dates';
+import { colors, spacing } from '@/theme';
 
 export default function TripDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const trip = useTrip(id);
   const cities = useCities();
-  const states = useStates();
   const cancel = useCancelTrip();
+  const loads = useTripLoads();
   const { data: profile } = useMyProfile();
+  const [confirmCancel, setConfirmCancel] = useState(false);
 
   if (trip.data === null) return <LoadingView error={t('errors.notFound')} />;
   if (!trip.data || !cities.data) {
@@ -44,58 +48,33 @@ export default function TripDetailScreen() {
   }
 
   const tr = trip.data;
-  const city = (cityId: number) =>
-    cityLabel(
-      cities.data.find((c) => c.id === cityId),
-      states.data,
-    );
-  const ticketStatus = t(`reviewStatus.${tr.ticket_status}` as StringKey);
-
-  function confirmCancel() {
-    Alert.alert(t('trips.cancelConfirm'), undefined, [
-      { text: t('trips.keep'), style: 'cancel' },
-      { text: t('trips.cancelYes'), style: 'destructive', onPress: () => cancel.mutate(tr.id) },
-    ]);
-  }
+  const cityName = (cityId: number) => cities.data.find((c) => c.id === cityId)?.name ?? '';
+  const live = tr.status === 'active' && tr.travel_date >= todayIst();
 
   return (
     <Screen>
-      <View style={styles.card}>
-        <DetailRow
-          label={t('trips.fields.route')}
-          value={t('trips.route', { from: city(tr.from_city_id), to: city(tr.to_city_id) })}
-        />
-        <DetailRow label={t('trips.fields.date')} value={formatDate(tr.travel_date)} />
-        <DetailRow
-          label={t('trips.fields.mode')}
-          value={t(`travelModes.${tr.mode}` as StringKey)}
-        />
-        <DetailRow
-          label={t('trips.fields.capacity')}
-          value={t('trips.capacityValue', {
-            weight: formatGrams(tr.capacity_grams),
-            items: tr.max_items,
-          })}
-        />
+      <ScreenHeader title={t('trips.detailTitle')} />
+      <TripHero
+        trip={tr}
+        from={cityName(tr.from_city_id)}
+        to={cityName(tr.to_city_id)}
+        load={loads[tr.id]}
+        label={
+          tr.status === 'active'
+            ? t(`travelModes.${tr.mode}` as StringKey)
+            : t(`trips.status.${tr.status}` as StringKey)
+        }
+      />
+      <Card>
         <DetailRow label={t('trips.fields.pnr')} value={tr.pnr} />
         <DetailRow
           label={t('trips.ticket')}
-          value={
-            tr.status === 'active' ? ticketStatus : t(`trips.status.${tr.status}` as StringKey)
-          }
+          value={t(`reviewStatus.${tr.ticket_status}` as StringKey)}
         />
-      </View>
+      </Card>
 
-      {tr.status === 'active' &&
-      tr.ticket_status === 'approved' &&
-      tr.travel_date >= todayIst() &&
-      profile?.traveler_verified_at ? (
-        <View style={[styles.card, styles.inner]}>
-          <Text variant="body">{t('offers.howItWorks')}</Text>
-          <Link href={{ pathname: '/traveler/feed', params: { tripId: tr.id } }} asChild>
-            <Button title={t('offers.findOnTrip')} />
-          </Link>
-        </View>
+      {live && tr.ticket_status === 'approved' && profile?.traveler_verified_at ? (
+        <RouteRequests tripId={tr.id} />
       ) : null}
 
       {tr.status === 'active' && tr.ticket_status === 'rejected' ? (
@@ -109,12 +88,28 @@ export default function TripDetailScreen() {
               {dbErrorMessage(cancel.error, 'trips.cancelFailed')}
             </Text>
           ) : null}
-          <Button
-            title={t('trips.cancelTrip')}
-            variant="secondary"
-            loading={cancel.isPending}
-            onPress={confirmCancel}
-          />
+          {confirmCancel ? (
+            <Card style={styles.inner}>
+              <Text variant="body">{t('trips.cancelConfirm')}</Text>
+              <Button
+                title={t('trips.cancelYes')}
+                variant="outline"
+                loading={cancel.isPending}
+                onPress={() => cancel.mutate(tr.id)}
+              />
+              <Button
+                title={t('trips.keep')}
+                variant="link"
+                onPress={() => setConfirmCancel(false)}
+              />
+            </Card>
+          ) : (
+            <Button
+              title={t('trips.cancelTrip')}
+              variant="dangerLink"
+              onPress={() => setConfirmCancel(true)}
+            />
+          )}
         </View>
       ) : null}
     </Screen>
@@ -136,7 +131,7 @@ function ResubmitTicket({ trip }: { trip: Trip }) {
   }
 
   return (
-    <View style={styles.card}>
+    <Card>
       <View style={styles.inner}>
         <Text variant="body" style={styles.error}>
           {t('trips.ticketRejected', { reason: trip.ticket_reject_reason ?? '' })}
@@ -161,17 +156,11 @@ function ResubmitTicket({ trip }: { trip: Trip }) {
         ) : null}
         <Button title={t('trips.resubmit')} loading={resubmit.isPending} onPress={send} />
       </View>
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
   inner: {
     padding: spacing.md,
     gap: spacing.md,
