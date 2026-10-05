@@ -23,7 +23,9 @@ Read docs/PRODUCT.md for rules and docs/PHASES.md for the build plan. Work on ON
 ## Brand
 - Deep Teal #0E3B43, Orange #F28E2B, Off-white #F7F9F9
 - Orange is for shapes/accents only, never text on light backgrounds (contrast 2.4:1)
-- Font: Outfit 600 for the wordmark; DM Sans for app text
+- Font: Outfit 600 for the wordmark, Outfit 700 for screen headings; DM Sans for app text
+- Screens follow "Hopbag App Screens.pdf": bottom tabs (Home, Requests, Trips, Chat, Me), own header (src/components/screen-header.tsx), shared kit in src/components. Prices show as "Rs 1,200".
+- Fees: the requester pays item price + fare + Hopbag fee (platform_fee_bps on the fare); the traveler gets item price + full fare.
 - Logo files: assets/brand (from hopbag-logo-kit.zip)
 
 ## Commands
